@@ -43,7 +43,11 @@ export class TeamUpRelayFeature {
 
     // Visual Objects
     private trackTiles: GameObjects.TileSprite[] = [];
-    private audienceLayer: GameObjects.TileSprite | null = null;
+    private leftAudienceLayer: GameObjects.TileSprite | null = null;
+    private rightAudienceLayer: GameObjects.TileSprite | null = null;
+    private leftCannonSprite: GameObjects.Sprite | null = null;
+    private rightCannonSprite: GameObjects.Sprite | null = null;
+    private sideDecorations: GameObjects.GameObject[] = [];
     private chimpuContainer!: GameObjects.Container;
     private byteContainer!: GameObjects.Container;
     private chimpuSprite!: GameObjects.Sprite;
@@ -100,30 +104,62 @@ export class TeamUpRelayFeature {
     private setupEnvironment() {
         const { width, height } = this.scene.scale;
 
-        // Background dark arena fill
-        this.scene.add.rectangle(width / 2, height / 2, width, height, 0x070a14)
+        // 1. Deep space cyber arena background fill
+        this.scene.add.rectangle(width / 2, height / 2, width, height, 0x050811)
             .setDepth(UILayers.GAME_BACKGROUND);
 
-        // Stadium audience top layer
-        this.audienceLayer = this.scene.add.tileSprite(width / 2, 190, width, 140, 'arena_audience_layer')
-            .setDepth(UILayers.GAME_BACKGROUND + 1)
-            .setAlpha(0.85);
+        // 2. Stadium Upper Arena Sky / Canopy Arch
+        const canopyG = this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 1);
+        canopyG.fillStyle(0x0a1020, 0.9);
+        canopyG.fillRect(0, 0, width, 180);
+        canopyG.lineStyle(4, 0x1e293b, 1);
+        canopyG.lineBetween(0, 180, width, 180);
+        canopyG.lineStyle(2, 0x00f2fe, 0.5);
+        canopyG.lineBetween(0, 180, width, 180);
 
-        // Neon Arena Track (Two Perspective Lanes)
+        // Digital Sports Header Arena Title in background
+        const arenaTitle = this.scene.add.text(width / 2, 70, '⚡ TEAM-UP RELAY CYBER STADIUM ⚡', {
+            fontFamily: 'Arial Black',
+            fontSize: '26px',
+            color: '#38bdf8',
+            align: 'center'
+        }).setOrigin(0.5).setAlpha(0.6).setDepth(UILayers.GAME_BACKGROUND + 2);
+        this.sideDecorations.push(arenaTitle);
+
+        // 3. PARALLEL AUDIENCE & STADIUM SILHOUETTES ON BOTH SIDES
+        // Left Stadium & Audience Grandstand (x: 0 to 460)
+        this.leftAudienceLayer = this.scene.add.tileSprite(230, height / 2 + 60, 460, height, 'stadium_left_side')
+            .setDepth(UILayers.GAME_BACKGROUND + 2)
+            .setAlpha(0.95);
+
+        // Right Stadium & Audience Grandstand (x: 1460 to 1920)
+        this.rightAudienceLayer = this.scene.add.tileSprite(1690, height / 2 + 60, 460, height, 'stadium_right_side')
+            .setDepth(UILayers.GAME_BACKGROUND + 2)
+            .setAlpha(0.95);
+
+        // 4. Two-Lane Neon Arena Track (Center x: 460 to 1460, width: 1000)
         const trackW = 1000;
-        const trackH = 800;
-        const track = this.scene.add.tileSprite(width / 2, height / 2 + 160, trackW, trackH, 'neon_track_tile')
-            .setDepth(UILayers.GAME_BACKGROUND + 2);
+        const trackH = height;
+        const track = this.scene.add.tileSprite(width / 2, height / 2 + 60, trackW, trackH, 'neon_track_tile')
+            .setDepth(UILayers.GAME_BACKGROUND + 3);
         this.trackTiles.push(track);
 
-        // Stadium Floodlights in corners
-        this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 3)
-            .fillStyle(0x00f2fe, 0.08)
-            .fillTriangle(0, 0, 800, height, 200, height);
+        // 7. Confetti Cannon Launchers on Trackside Barriers
+        this.leftCannonSprite = this.scene.add.sprite(445, 780, 'confetti_cannon_left')
+            .setDepth(UILayers.GAME_BACKGROUND + 4)
+            .setOrigin(0.5, 0.8);
+        this.rightCannonSprite = this.scene.add.sprite(1475, 780, 'confetti_cannon_right')
+            .setDepth(UILayers.GAME_BACKGROUND + 4)
+            .setOrigin(0.5, 0.8);
+        this.sideDecorations.push(this.leftCannonSprite, this.rightCannonSprite);
 
-        this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 3)
-            .fillStyle(0xff6b6b, 0.08)
-            .fillTriangle(width, 0, width - 800, height, width - 200, height);
+        // 8. Stadium Floodlight Beams (Angled searchlights)
+        const floodG = this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 3);
+        floodG.fillStyle(0x00f2fe, 0.07);
+        floodG.fillTriangle(0, 0, 800, height, 180, height);
+        floodG.fillStyle(0xff477e, 0.07);
+        floodG.fillTriangle(width, 0, width - 800, height, width - 180, height);
+        this.sideDecorations.push(floodG);
     }
 
 
@@ -476,12 +512,15 @@ export class TeamUpRelayFeature {
             duration: duration,
             ease: 'Quad.easeIn',
             onUpdate: (tween) => {
-                // Scroll track speed based on approach
+                // Scroll track and parallel stadium audience grandstands based on approach speed
                 if (this.trackTiles[0]) {
-                    this.trackTiles[0].tilePositionY -= 6 + tween.progress * 8;
+                    this.trackTiles[0].tilePositionY -= 2.2 + tween.progress * 2.0;
                 }
-                if (this.audienceLayer) {
-                    this.audienceLayer.tilePositionX += 0.5;
+                if (this.leftAudienceLayer) {
+                    this.leftAudienceLayer.tilePositionY -= 1.4 + tween.progress * 1.2;
+                }
+                if (this.rightAudienceLayer) {
+                    this.rightAudienceLayer.tilePositionY -= 1.4 + tween.progress * 1.2;
                 }
             },
             onComplete: () => {
@@ -910,6 +949,9 @@ export class TeamUpRelayFeature {
                 onComplete: () => spark.destroy()
             });
         }
+
+        // Stadium Confetti Cannons burst on gate shatter!
+        this.launchConfetti(true);
     }
 
     private showFloatingScore(text: string, color: number) {
@@ -940,24 +982,42 @@ export class TeamUpRelayFeature {
         AudioManager.getInstance().playSFX('cheer');
         AudioManager.getInstance().playSFX('fireworks');
 
-        // Finish Portal Archway Graphic
-        const portal = this.scene.add.graphics().setDepth(UILayers.GAME_EFFECTS);
-        portal.lineStyle(16, 0xa855f7, 0.9);
-        portal.strokeRoundedRect(width / 2 - 400, this.GATE_TARGET_Y - 140, 800, 280, 40);
-        portal.lineStyle(8, 0x00f2fe, 0.9);
-        portal.strokeRoundedRect(width / 2 - 380, this.GATE_TARGET_Y - 120, 760, 240, 30);
+        // Grand Holographic Finish-Line Portal (2.5D Scale-In)
+        const portal = this.scene.add.image(width / 2, this.GATE_TARGET_Y - 40, 'finish_portal_arch')
+            .setDepth(UILayers.GAME_EFFECTS)
+            .setScale(0.5)
+            .setAlpha(0);
 
-        // Victory Ribbon
-        this.scene.add.text(width / 2, this.GATE_TARGET_Y + 10, '★ FINISH LINE - RELAY COMPLETE! ★', {
+        this.scene.tweens.add({
+            targets: portal,
+            scale: 1.15,
+            alpha: 1,
+            y: this.GATE_TARGET_Y,
+            duration: 600,
+            ease: 'Back.easeOut'
+        });
+
+        // Victory Ribbon & Finish Banner
+        const victoryRibbon = this.scene.add.text(width / 2, this.GATE_TARGET_Y + 18, '★ FINISH LINE - RELAY COMPLETE! ★', {
             fontFamily: 'Arial Black',
-            fontSize: '30px',
+            fontSize: '32px',
             color: '#ffffff',
             backgroundColor: '#d946ef',
-            padding: { x: 28, y: 12 }
-        }).setOrigin(0.5).setDepth(UILayers.GAME_EFFECTS + 2);
+            padding: { x: 32, y: 14 }
+        }).setOrigin(0.5).setScale(0.8).setDepth(UILayers.GAME_EFFECTS + 2);
 
-        // Confetti Cannons
-        this.launchConfetti();
+        this.scene.tweens.add({
+            targets: victoryRibbon,
+            scale: 1.05,
+            duration: 600,
+            ease: 'Back.easeOut'
+        });
+
+        // Launch double stadium confetti cannon blast
+        this.launchConfetti(true);
+        this.scene.time.delayedCall(450, () => {
+            if (!this.isDestroyed) this.launchConfetti(false);
+        });
 
         // High-five runners sprint forward through portal
         this.setRunnersState('running');
@@ -994,29 +1054,123 @@ export class TeamUpRelayFeature {
     }
 
 
-    private launchConfetti() {
+    private launchConfetti(fromCannons: boolean = false) {
         const { width } = this.scene.scale;
-        const confettiColors = [0x00f2fe, 0xff6b6b, 0xa855f7, 0xfbbf24, 0x10b981];
+        const confettiColors = [0x00f2fe, 0xff477e, 0xa855f7, 0xfacc15, 0x10b981, 0x38bdf8];
 
-        for (let i = 0; i < 40; i++) {
-            const conf = this.scene.add.rectangle(
-                Phaser.Math.Between(width * 0.2, width * 0.8),
-                Phaser.Math.Between(100, 400),
-                Phaser.Math.Between(10, 18),
-                Phaser.Math.Between(10, 18),
-                confettiColors[i % confettiColors.length]
-            ).setDepth(UILayers.GAME_EFFECTS + 5);
-
+        if (fromCannons) {
+            // Muzzle flash on both trackside cannons
+            const flashL = this.scene.add.circle(480, 755, 32, 0x00f2fe, 0.9)
+                .setDepth(UILayers.GAME_EFFECTS + 12);
             this.scene.tweens.add({
-                targets: conf,
-                y: conf.y + Phaser.Math.Between(300, 600),
-                x: conf.x + Phaser.Math.Between(-120, 120),
-                angle: Phaser.Math.Between(-720, 720),
+                targets: flashL,
+                scale: 2.2,
                 alpha: 0,
-                duration: Phaser.Math.Between(1200, 2200),
-                ease: 'Quad.easeIn',
-                onComplete: () => conf.destroy()
+                duration: 200,
+                onComplete: () => flashL.destroy()
             });
+
+            const flashR = this.scene.add.circle(1440, 755, 32, 0xff477e, 0.9)
+                .setDepth(UILayers.GAME_EFFECTS + 12);
+            this.scene.tweens.add({
+                targets: flashR,
+                scale: 2.2,
+                alpha: 0,
+                duration: 200,
+                onComplete: () => flashR.destroy()
+            });
+
+            // Burst 30 confetti flakes from left cannon angled upward-right
+            for (let i = 0; i < 28; i++) {
+                const color = confettiColors[i % confettiColors.length];
+                const conf = this.scene.add.rectangle(
+                    480, 755,
+                    Phaser.Math.Between(12, 22),
+                    Phaser.Math.Between(8, 14),
+                    color
+                ).setDepth(UILayers.GAME_EFFECTS + 8);
+
+                const targetX = 480 + Phaser.Math.Between(160, 520);
+                const targetY = 755 - Phaser.Math.Between(200, 500);
+
+                this.scene.tweens.add({
+                    targets: conf,
+                    x: targetX,
+                    y: targetY,
+                    angle: Phaser.Math.Between(-360, 360),
+                    duration: Phaser.Math.Between(400, 700),
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => {
+                        this.scene.tweens.add({
+                            targets: conf,
+                            y: targetY + Phaser.Math.Between(300, 600),
+                            x: targetX + Phaser.Math.Between(-80, 80),
+                            alpha: 0,
+                            angle: Phaser.Math.Between(-720, 720),
+                            duration: Phaser.Math.Between(800, 1400),
+                            ease: 'Quad.easeIn',
+                            onComplete: () => conf.destroy()
+                        });
+                    }
+                });
+            }
+
+            // Burst 28 confetti flakes from right cannon angled upward-left
+            for (let i = 0; i < 28; i++) {
+                const color = confettiColors[(i + 2) % confettiColors.length];
+                const conf = this.scene.add.rectangle(
+                    1440, 755,
+                    Phaser.Math.Between(12, 22),
+                    Phaser.Math.Between(8, 14),
+                    color
+                ).setDepth(UILayers.GAME_EFFECTS + 8);
+
+                const targetX = 1440 - Phaser.Math.Between(160, 520);
+                const targetY = 755 - Phaser.Math.Between(200, 500);
+
+                this.scene.tweens.add({
+                    targets: conf,
+                    x: targetX,
+                    y: targetY,
+                    angle: Phaser.Math.Between(-360, 360),
+                    duration: Phaser.Math.Between(400, 700),
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => {
+                        this.scene.tweens.add({
+                            targets: conf,
+                            y: targetY + Phaser.Math.Between(300, 600),
+                            x: targetX + Phaser.Math.Between(-80, 80),
+                            alpha: 0,
+                            angle: Phaser.Math.Between(-720, 720),
+                            duration: Phaser.Math.Between(800, 1400),
+                            ease: 'Quad.easeIn',
+                            onComplete: () => conf.destroy()
+                        });
+                    }
+                });
+            }
+        } else {
+            // General celebratory shower across track
+            for (let i = 0; i < 45; i++) {
+                const conf = this.scene.add.rectangle(
+                    Phaser.Math.Between(width * 0.25, width * 0.75),
+                    Phaser.Math.Between(100, 350),
+                    Phaser.Math.Between(12, 20),
+                    Phaser.Math.Between(12, 20),
+                    confettiColors[i % confettiColors.length]
+                ).setDepth(UILayers.GAME_EFFECTS + 8);
+
+                this.scene.tweens.add({
+                    targets: conf,
+                    y: conf.y + Phaser.Math.Between(400, 750),
+                    x: conf.x + Phaser.Math.Between(-140, 140),
+                    angle: Phaser.Math.Between(-720, 720),
+                    alpha: 0,
+                    duration: Phaser.Math.Between(1400, 2400),
+                    ease: 'Quad.easeIn',
+                    onComplete: () => conf.destroy()
+                });
+            }
         }
     }
 
@@ -1051,11 +1205,16 @@ export class TeamUpRelayFeature {
     public update(_time: number, _delta: number) {
         if (this.isDestroyed || this.isPaused) return;
 
-        // Looping neon track scrolls ONLY when active gate has been shattered / between gates
-        if (this.isTrackScrolling && this.trackTiles[0]) {
-            this.trackTiles[0].tilePositionY -= 6.0;
-            if (this.audienceLayer) {
-                this.audienceLayer.tilePositionX += 0.4;
+        // Looping neon track and parallel side stadium silhouettes scroll when active gate has been shattered / between gates
+        if (this.isTrackScrolling) {
+            if (this.trackTiles[0]) {
+                this.trackTiles[0].tilePositionY -= 2.2;
+            }
+            if (this.leftAudienceLayer) {
+                this.leftAudienceLayer.tilePositionY -= 1.4;
+            }
+            if (this.rightAudienceLayer) {
+                this.rightAudienceLayer.tilePositionY -= 1.4;
             }
         }
     }
@@ -1101,6 +1260,14 @@ export class TeamUpRelayFeature {
             this.activeGateContainer.destroy();
             this.activeGateContainer = null;
         }
+        this.leftAudienceLayer?.destroy();
+        this.leftAudienceLayer = null;
+        this.rightAudienceLayer?.destroy();
+        this.rightAudienceLayer = null;
+        this.trackTiles.forEach(t => t.destroy());
+        this.trackTiles = [];
+        this.sideDecorations.forEach(d => d.destroy());
+        this.sideDecorations = [];
         this.chimpuContainer?.destroy();
         this.byteContainer?.destroy();
     }

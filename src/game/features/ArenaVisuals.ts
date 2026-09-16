@@ -15,17 +15,17 @@ export class ArenaVisuals {
     }
 
     private static generateTrackAndArena(scene: Scene) {
-        // 1. Looping Neon Track Tile (512x256)
+        // 1. Enhanced Two-Lane Neon Track Tile (512x256)
         const track = scene.make.graphics({ x: 0, y: 0 });
         const tw = 512;
         const th = 256;
 
-        // Dark navy base
-        track.fillStyle(0x0a0f1d, 1);
+        // Dark navy cyber asphalt base
+        track.fillStyle(0x080d1a, 1);
         track.fillRect(0, 0, tw, th);
 
-        // Track grid lines
-        track.lineStyle(2, 0x16233d, 0.8);
+        // Cyber track grid lines
+        track.lineStyle(1.5, 0x14223d, 0.7);
         for (let x = 0; x <= tw; x += 64) {
             track.lineBetween(x, 0, x, th);
         }
@@ -33,65 +33,479 @@ export class ArenaVisuals {
             track.lineBetween(0, y, tw, y);
         }
 
-        // Outer Neon Track Borders
-        track.lineStyle(6, 0x00f2fe, 0.9); // Left AI lane cyan
-        track.lineBetween(16, 0, 16, th);
-        track.lineStyle(6, 0xff6b6b, 0.9); // Right Human lane coral
-        track.lineBetween(tw - 16, 0, tw - 16, th);
-
-        // Center Divider
-        track.lineStyle(4, 0xa855f7, 0.7); // Purple center dashed line
-        for (let y = 8; y < th; y += 32) {
-            track.lineBetween(tw / 2, y, tw / 2, y + 16);
+        // Sub-lane glowing grid dots
+        track.fillStyle(0x1e3a8a, 0.5);
+        for (let x = 32; x < tw; x += 64) {
+            for (let y = 16; y < th; y += 32) {
+                track.fillCircle(x, y, 2);
+            }
         }
 
-        // Glowing Chevron speed arrows
-        track.fillStyle(0x00f2fe, 0.15);
-        track.beginPath();
-        track.moveTo(tw * 0.25 - 20, 40);
-        track.lineTo(tw * 0.25, 20);
-        track.lineTo(tw * 0.25 + 20, 40);
-        track.lineTo(tw * 0.25, 30);
-        track.closePath();
-        track.fillPath();
+        // Outer Left Lane (AI / Byte - Cyan) Neon Borders
+        track.fillStyle(0x00f2fe, 0.12);
+        track.fillRect(0, 0, 24, th);
+        track.lineStyle(8, 0x0284c7, 0.5);
+        track.lineBetween(14, 0, 14, th);
+        track.lineStyle(4, 0x00f2fe, 1);
+        track.lineBetween(14, 0, 14, th);
+        track.lineStyle(1.5, 0xffffff, 0.9);
+        track.lineBetween(14, 0, 14, th);
 
-        track.fillStyle(0xff6b6b, 0.15);
-        track.beginPath();
-        track.moveTo(tw * 0.75 - 20, 40);
-        track.lineTo(tw * 0.75, 20);
-        track.lineTo(tw * 0.75 + 20, 40);
-        track.lineTo(tw * 0.75, 30);
-        track.closePath();
-        track.fillPath();
+        // Outer Right Lane (Human / Chimpu - Coral/Pink) Neon Borders
+        track.fillStyle(0xff6b6b, 0.12);
+        track.fillRect(tw - 24, 0, 24, th);
+        track.lineStyle(8, 0xe11d48, 0.5);
+        track.lineBetween(tw - 14, 0, tw - 14, th);
+        track.lineStyle(4, 0xff6b6b, 1);
+        track.lineBetween(tw - 14, 0, tw - 14, th);
+        track.lineStyle(1.5, 0xffffff, 0.9);
+        track.lineBetween(tw - 14, 0, tw - 14, th);
+
+        // Center Lane Divider (Pulsing Violet Dashed Line)
+        track.lineStyle(6, 0x7c3aed, 0.4);
+        for (let y = 4; y < th; y += 32) {
+            track.lineBetween(tw / 2, y, tw / 2, y + 20);
+        }
+        track.lineStyle(3, 0xc084fc, 0.95);
+        for (let y = 4; y < th; y += 32) {
+            track.lineBetween(tw / 2, y, tw / 2, y + 20);
+        }
+        track.fillStyle(0xffffff, 0.9);
+        for (let y = 14; y < th; y += 32) {
+            track.fillCircle(tw / 2, y, 2.5);
+        }
+
+        // Glowing Chevron Speed Arrows (Left Lane - Cyan)
+        for (const yOff of [40, 168]) {
+            track.fillStyle(0x00f2fe, 0.22);
+            track.beginPath();
+            track.moveTo(tw * 0.25 - 24, yOff + 16);
+            track.lineTo(tw * 0.25, yOff - 6);
+            track.lineTo(tw * 0.25 + 24, yOff + 16);
+            track.lineTo(tw * 0.25, yOff + 4);
+            track.closePath();
+            track.fillPath();
+
+            track.lineStyle(2, 0x00f2fe, 0.7);
+            track.strokePath();
+        }
+
+        // Glowing Chevron Speed Arrows (Right Lane - Coral)
+        for (const yOff of [40, 168]) {
+            track.fillStyle(0xff6b6b, 0.22);
+            track.beginPath();
+            track.moveTo(tw * 0.75 - 24, yOff + 16);
+            track.lineTo(tw * 0.75, yOff - 6);
+            track.lineTo(tw * 0.75 + 24, yOff + 16);
+            track.lineTo(tw * 0.75, yOff + 4);
+            track.closePath();
+            track.fillPath();
+
+            track.lineStyle(2, 0xff6b6b, 0.7);
+            track.strokePath();
+        }
 
         track.generateTexture('neon_track_tile', tw, th);
 
-        // 2. Audience & Stadium Silhouette (960x140)
-        const aud = scene.make.graphics({ x: 0, y: 0 });
-        aud.fillStyle(0x080b14, 0.95);
-        aud.fillRect(0, 0, 960, 140);
+        // 2. LEFT SIDE Stadium & Audience Grandstand (480x540 vertical repeatable tile)
+        const stLeft = scene.make.graphics({ x: 0, y: 0 });
+        const sw = 480;
+        const sh = 540;
 
-        // Audience crowd heads & waving hands
-        const colors = [0x3b82f6, 0xec4899, 0x8b5cf6, 0x06b6d4, 0xf59e0b];
-        for (let i = 0; i < 960; i += 18) {
-            const h = 24 + Math.sin(i * 0.1) * 12;
-            const col = colors[(i / 18) % colors.length];
-            aud.fillStyle(col, 0.35);
-            aud.fillCircle(i + 8, 140 - h, 9);
-            aud.fillRect(i + 2, 140 - h + 6, 12, h);
+        // Dark stadium background atmosphere
+        stLeft.fillStyle(0x050811, 1);
+        stLeft.fillRect(0, 0, sw, sh);
+
+        // Tiered grandstand bleachers (Upper Tier x:0..160, Mid Tier x:160..320, Lower Tier x:320..440)
+        stLeft.fillStyle(0x0a0f1d, 1);
+        stLeft.fillRect(0, 0, 160, sh);
+        stLeft.fillStyle(0x0e1626, 1);
+        stLeft.fillRect(160, 0, 160, sh);
+        stLeft.fillStyle(0x131e33, 1);
+        stLeft.fillRect(320, 0, 120, sh);
+
+        // Tier separator lines & neon aisle lights
+        stLeft.lineStyle(3, 0x1e293b, 0.8);
+        stLeft.lineBetween(160, 0, 160, sh);
+        stLeft.lineBetween(320, 0, 320, sh);
+        stLeft.lineStyle(2, 0x00f2fe, 0.35);
+        stLeft.lineBetween(320, 0, 320, sh);
+
+        // Grandstand bleacher step horizontal lines
+        stLeft.lineStyle(1.5, 0x1f293d, 0.6);
+        for (let y = 0; y <= sh; y += 45) {
+            stLeft.lineBetween(0, y, 440, y);
         }
 
-        // Colorful stadium light glow dots
-        for (let j = 40; j < 960; j += 120) {
-            aud.fillStyle(0x00f2fe, 0.6);
-            aud.fillCircle(j, 25, 6);
-            aud.fillStyle(0xffffff, 0.8);
-            aud.fillCircle(j, 25, 3);
+        // Audience Silhouettes & Colorful Cheering Glow Sticks on Left Side
+        const stickColors = [0x00f2fe, 0xff477e, 0xa855f7, 0xfacc15, 0x10b981, 0x38bdf8];
+
+        // Tier 3 (Far Left - Denser, smaller silhouette audience)
+        for (let y = 15; y < sh; y += 38) {
+            for (let x = 20; x < 150; x += 28) {
+                const color = stickColors[(x + y) % stickColors.length];
+                const headY = y + (Math.sin(x * 0.2 + y) * 4);
+                // Silhouette head & shoulders
+                stLeft.fillStyle(0x1a2333, 0.95);
+                stLeft.fillCircle(x, headY, 7);
+                stLeft.fillRoundedRect(x - 9, headY + 5, 18, 14, 4);
+
+                // Cheering glow stick
+                stLeft.lineStyle(2.5, color, 0.85);
+                const angle = (x % 2 === 0) ? -0.4 : 0.4;
+                stLeft.lineBetween(x + 5, headY + 2, x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12);
+                stLeft.fillStyle(color, 0.4);
+                stLeft.fillCircle(x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12, 3);
+            }
         }
 
-        aud.generateTexture('arena_audience_layer', 960, 140);
+        // Tier 2 (Mid Left - Medium silhouette audience)
+        for (let y = 20; y < sh; y += 44) {
+            for (let x = 180; x < 310; x += 32) {
+                const color = stickColors[(x * 2 + y) % stickColors.length];
+                const headY = y + (Math.cos(x * 0.15 + y) * 5);
+                stLeft.fillStyle(0x222f46, 0.95);
+                stLeft.fillCircle(x, headY, 9);
+                stLeft.fillRoundedRect(x - 12, headY + 6, 24, 18, 5);
 
-        // 3. Shard polygon for particle break
+                // Cheering glow stick / waving arm
+                stLeft.lineStyle(3, color, 0.9);
+                const armX = x + (x % 3 === 0 ? 8 : -8);
+                stLeft.lineBetween(armX, headY + 4, armX + (x % 3 === 0 ? 9 : -9), headY - 10);
+                stLeft.fillStyle(color, 0.6);
+                stLeft.fillCircle(armX + (x % 3 === 0 ? 9 : -9), headY - 10, 4);
+            }
+        }
+
+        // Tier 1 (Front Left - Larger front-row cheering audience)
+        for (let y = 25; y < sh; y += 52) {
+            for (let x = 340; x < 430; x += 38) {
+                const color = stickColors[(x * 3 + y) % stickColors.length];
+                const headY = y + (Math.sin(x * 0.3 + y) * 6);
+                stLeft.fillStyle(0x2c3e5d, 0.98);
+                stLeft.fillCircle(x, headY, 11);
+                stLeft.fillRoundedRect(x - 15, headY + 8, 30, 22, 6);
+
+                // Raised cheering arms
+                stLeft.lineStyle(4, 0x2c3e5d, 1);
+                stLeft.lineBetween(x - 12, headY + 10, x - 18, headY - 4);
+                stLeft.lineBetween(x + 12, headY + 10, x + 18, headY - 4);
+
+                // Dual glow batons
+                stLeft.lineStyle(3, color, 1);
+                stLeft.lineBetween(x - 18, headY - 4, x - 22, headY - 18);
+                stLeft.lineBetween(x + 18, headY - 4, x + 22, headY - 18);
+                stLeft.fillStyle(color, 0.7);
+                stLeft.fillCircle(x - 22, headY - 18, 4.5);
+                stLeft.fillCircle(x + 22, headY - 18, 4.5);
+            }
+        }
+
+        // Left Stadium Structural Truss & Floodlight Tower (Far left vertical beam)
+        stLeft.lineStyle(5, 0x1e293b, 1);
+        stLeft.lineBetween(10, 0, 10, sh);
+        stLeft.lineBetween(60, 0, 60, sh);
+        for (let y = 0; y < sh; y += 60) {
+            stLeft.lineBetween(10, y, 60, y + 60);
+            stLeft.lineBetween(60, y, 10, y + 60);
+        }
+        // Floodlight lenses
+        for (let y = 40; y < sh; y += 180) {
+            stLeft.fillStyle(0x00f2fe, 0.8);
+            stLeft.fillCircle(35, y, 10);
+            stLeft.fillStyle(0xffffff, 0.95);
+            stLeft.fillCircle(35, y, 5);
+        }
+
+        // Left Trackside Barrier Railing (x: 440 to 480)
+        stLeft.fillStyle(0x0b1120, 1);
+        stLeft.fillRect(440, 0, 40, sh);
+        stLeft.lineStyle(6, 0x00f2fe, 0.95);
+        stLeft.lineBetween(476, 0, 476, sh);
+        stLeft.lineStyle(2, 0xffffff, 0.9);
+        stLeft.lineBetween(476, 0, 476, sh);
+
+        // Barrier Hazard Neon Stripes
+        stLeft.lineStyle(2.5, 0x00f2fe, 0.4);
+        for (let y = 0; y < sh; y += 30) {
+            stLeft.lineBetween(445, y, 470, y + 15);
+        }
+
+        stLeft.generateTexture('stadium_left_side', sw, sh);
+
+        // 3. RIGHT SIDE Stadium & Audience Grandstand (480x540 vertical repeatable tile)
+        const stRight = scene.make.graphics({ x: 0, y: 0 });
+
+        // Dark stadium background atmosphere
+        stRight.fillStyle(0x050811, 1);
+        stRight.fillRect(0, 0, sw, sh);
+
+        // Tiered grandstand bleachers (Lower Tier x:40..160, Mid Tier x:160..320, Upper Tier x:320..480)
+        stRight.fillStyle(0x131e33, 1);
+        stRight.fillRect(40, 0, 120, sh);
+        stRight.fillStyle(0x0e1626, 1);
+        stRight.fillRect(160, 0, 160, sh);
+        stRight.fillStyle(0x0a0f1d, 1);
+        stRight.fillRect(320, 0, 160, sh);
+
+        // Tier separator lines & neon aisle lights
+        stRight.lineStyle(3, 0x1e293b, 0.8);
+        stRight.lineBetween(160, 0, 160, sh);
+        stRight.lineBetween(320, 0, 320, sh);
+        stRight.lineStyle(2, 0xff6b6b, 0.35);
+        stRight.lineBetween(160, 0, 160, sh);
+
+        // Bleacher step lines
+        stRight.lineStyle(1.5, 0x1f293d, 0.6);
+        for (let y = 0; y <= sh; y += 45) {
+            stRight.lineBetween(40, y, 480, y);
+        }
+
+        // Tier 1 (Front Right - Larger front-row cheering audience)
+        for (let y = 25; y < sh; y += 52) {
+            for (let x = 50; x < 140; x += 38) {
+                const color = stickColors[(x * 3 + y + 2) % stickColors.length];
+                const headY = y + (Math.cos(x * 0.3 + y) * 6);
+                stRight.fillStyle(0x2c3e5d, 0.98);
+                stRight.fillCircle(x, headY, 11);
+                stRight.fillRoundedRect(x - 15, headY + 8, 30, 22, 6);
+
+                // Raised cheering arms & dual glow batons
+                stRight.lineStyle(4, 0x2c3e5d, 1);
+                stRight.lineBetween(x - 12, headY + 10, x - 18, headY - 4);
+                stRight.lineBetween(x + 12, headY + 10, x + 18, headY - 4);
+
+                stRight.lineStyle(3, color, 1);
+                stRight.lineBetween(x - 18, headY - 4, x - 22, headY - 18);
+                stRight.lineBetween(x + 18, headY - 4, x + 22, headY - 18);
+                stRight.fillStyle(color, 0.7);
+                stRight.fillCircle(x - 22, headY - 18, 4.5);
+                stRight.fillCircle(x + 22, headY - 18, 4.5);
+            }
+        }
+
+        // Tier 2 (Mid Right - Medium silhouette audience)
+        for (let y = 20; y < sh; y += 44) {
+            for (let x = 170; x < 300; x += 32) {
+                const color = stickColors[(x * 2 + y + 1) % stickColors.length];
+                const headY = y + (Math.sin(x * 0.15 + y) * 5);
+                stRight.fillStyle(0x222f46, 0.95);
+                stRight.fillCircle(x, headY, 9);
+                stRight.fillRoundedRect(x - 12, headY + 6, 24, 18, 5);
+
+                stRight.lineStyle(3, color, 0.9);
+                const armX = x + (x % 3 === 0 ? 8 : -8);
+                stRight.lineBetween(armX, headY + 4, armX + (x % 3 === 0 ? 9 : -9), headY - 10);
+                stRight.fillStyle(color, 0.6);
+                stRight.fillCircle(armX + (x % 3 === 0 ? 9 : -9), headY - 10, 4);
+            }
+        }
+
+        // Tier 3 (Far Right - Denser, smaller silhouette audience)
+        for (let y = 15; y < sh; y += 38) {
+            for (let x = 330; x < 460; x += 28) {
+                const color = stickColors[(x + y + 3) % stickColors.length];
+                const headY = y + (Math.cos(x * 0.2 + y) * 4);
+                stRight.fillStyle(0x1a2333, 0.95);
+                stRight.fillCircle(x, headY, 7);
+                stRight.fillRoundedRect(x - 9, headY + 5, 18, 14, 4);
+
+                stRight.lineStyle(2.5, color, 0.85);
+                const angle = (x % 2 === 0) ? 0.4 : -0.4;
+                stRight.lineBetween(x + 5, headY + 2, x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12);
+                stRight.fillStyle(color, 0.4);
+                stRight.fillCircle(x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12, 3);
+            }
+        }
+
+        // Right Stadium Structural Truss & Floodlight Tower (Far right vertical beam)
+        stRight.lineStyle(5, 0x1e293b, 1);
+        stRight.lineBetween(sw - 10, 0, sw - 10, sh);
+        stRight.lineBetween(sw - 60, 0, sw - 60, sh);
+        for (let y = 0; y < sh; y += 60) {
+            stRight.lineBetween(sw - 10, y, sw - 60, y + 60);
+            stRight.lineBetween(sw - 60, y, sw - 10, y + 60);
+        }
+        // Floodlight lenses
+        for (let y = 40; y < sh; y += 180) {
+            stRight.fillStyle(0xff477e, 0.8);
+            stRight.fillCircle(sw - 35, y, 10);
+            stRight.fillStyle(0xffffff, 0.95);
+            stRight.fillCircle(sw - 35, y, 5);
+        }
+
+        // Right Trackside Barrier Railing (x: 0 to 40)
+        stRight.fillStyle(0x0b1120, 1);
+        stRight.fillRect(0, 0, 40, sh);
+        stRight.lineStyle(6, 0xff6b6b, 0.95);
+        stRight.lineBetween(4, 0, 4, sh);
+        stRight.lineStyle(2, 0xffffff, 0.9);
+        stRight.lineBetween(4, 0, 4, sh);
+
+        // Barrier Hazard Neon Stripes
+        stRight.lineStyle(2.5, 0xff6b6b, 0.4);
+        for (let y = 0; y < sh; y += 30) {
+            stRight.lineBetween(10, y, 35, y + 15);
+        }
+
+        stRight.generateTexture('stadium_right_side', sw, sh);
+
+        // 4. Colorful Stadium Banners (Left - Cyan & Right - Coral)
+        const bLeft = scene.make.graphics({ x: 0, y: 0 });
+        bLeft.fillStyle(0x091224, 0.9);
+        bLeft.fillRoundedRect(0, 0, 260, 80, 12);
+        bLeft.lineStyle(3, 0x00f2fe, 0.9);
+        bLeft.strokeRoundedRect(0, 0, 260, 80, 12);
+        bLeft.fillStyle(0x00f2fe, 0.2);
+        bLeft.fillRoundedRect(8, 8, 244, 64, 8);
+        bLeft.generateTexture('arena_banner_left', 260, 80);
+
+        const bRight = scene.make.graphics({ x: 0, y: 0 });
+        bRight.fillStyle(0x1a0d1a, 0.9);
+        bRight.fillRoundedRect(0, 0, 260, 80, 12);
+        bRight.lineStyle(3, 0xff477e, 0.9);
+        bRight.strokeRoundedRect(0, 0, 260, 80, 12);
+        bRight.fillStyle(0xff477e, 0.2);
+        bRight.fillRoundedRect(8, 8, 244, 64, 8);
+        bRight.generateTexture('arena_banner_right', 260, 80);
+
+        // 5. Floating Hologram Telemetry Screens (Left & Right)
+        const hLeft = scene.make.graphics({ x: 0, y: 0 });
+        hLeft.fillStyle(0x06152d, 0.85);
+        hLeft.fillRoundedRect(0, 0, 220, 130, 10);
+        hLeft.lineStyle(2.5, 0x00f2fe, 0.9);
+        hLeft.strokeRoundedRect(0, 0, 220, 130, 10);
+        // Cyber UI grid & waveform graph
+        hLeft.lineStyle(1.5, 0x0284c7, 0.6);
+        hLeft.beginPath();
+        for (let x = 15; x < 205; x += 15) {
+            const yVal = 65 + Math.sin(x * 0.1) * 20;
+            if (x === 15) hLeft.moveTo(x, yVal);
+            else hLeft.lineTo(x, yVal);
+        }
+        hLeft.strokePath();
+        hLeft.fillStyle(0x00f2fe, 1);
+        hLeft.fillCircle(20, 20, 4);
+        hLeft.fillCircle(35, 20, 4);
+        hLeft.generateTexture('holo_screen_left', 220, 130);
+
+        const hRight = scene.make.graphics({ x: 0, y: 0 });
+        hRight.fillStyle(0x240d1a, 0.85);
+        hRight.fillRoundedRect(0, 0, 220, 130, 10);
+        hRight.lineStyle(2.5, 0xff477e, 0.9);
+        hRight.strokeRoundedRect(0, 0, 220, 130, 10);
+        // Visualizer equalizer bars
+        for (let i = 0; i < 8; i++) {
+            const barH = 15 + ((i * 7) % 35);
+            hRight.fillStyle(0xff477e, 0.8);
+            hRight.fillRoundedRect(30 + i * 20, 95 - barH, 12, barH, 3);
+        }
+        hRight.fillStyle(0xff6b6b, 1);
+        hRight.fillCircle(20, 20, 4);
+        hRight.fillCircle(35, 20, 4);
+        hRight.generateTexture('holo_screen_right', 220, 130);
+
+        // 6. Confetti Cannon Launchers (Mounted on left/right track barriers)
+        const cCanLeft = scene.make.graphics({ x: 0, y: 0 });
+        cCanLeft.fillStyle(0x1e293b, 1);
+        cCanLeft.fillRoundedRect(10, 40, 60, 50, 8);
+        cCanLeft.fillStyle(0x0f172a, 1);
+        cCanLeft.fillRoundedRect(18, 50, 44, 30, 4);
+        // Angled Twin Cannon Barrels (aiming toward track center-up)
+        cCanLeft.fillStyle(0x334155, 1);
+        cCanLeft.lineStyle(2, 0x00f2fe, 1);
+        cCanLeft.beginPath();
+        cCanLeft.moveTo(35, 45);
+        cCanLeft.lineTo(65, 10);
+        cCanLeft.lineTo(75, 18);
+        cCanLeft.lineTo(45, 55);
+        cCanLeft.closePath();
+        cCanLeft.fillPath();
+        cCanLeft.strokePath();
+        // Glowing Cannon Nozzles
+        cCanLeft.fillStyle(0x00f2fe, 1);
+        cCanLeft.fillEllipse(70, 14, 10, 6);
+        cCanLeft.fillStyle(0xffffff, 1);
+        cCanLeft.fillEllipse(70, 14, 5, 3);
+        cCanLeft.generateTexture('confetti_cannon_left', 90, 100);
+
+        const cCanRight = scene.make.graphics({ x: 0, y: 0 });
+        cCanRight.fillStyle(0x1e293b, 1);
+        cCanRight.fillRoundedRect(20, 40, 60, 50, 8);
+        cCanRight.fillStyle(0x0f172a, 1);
+        cCanRight.fillRoundedRect(28, 50, 44, 30, 4);
+        // Angled Twin Cannon Barrels (aiming toward track center-up)
+        cCanRight.fillStyle(0x334155, 1);
+        cCanRight.lineStyle(2, 0xff477e, 1);
+        cCanRight.beginPath();
+        cCanRight.moveTo(55, 45);
+        cCanRight.lineTo(25, 10);
+        cCanRight.lineTo(15, 18);
+        cCanRight.lineTo(45, 55);
+        cCanRight.closePath();
+        cCanRight.fillPath();
+        cCanRight.strokePath();
+        // Glowing Cannon Nozzles
+        cCanRight.fillStyle(0xff477e, 1);
+        cCanRight.fillEllipse(20, 14, 10, 6);
+        cCanRight.fillStyle(0xffffff, 1);
+        cCanRight.fillEllipse(20, 14, 5, 3);
+        cCanRight.generateTexture('confetti_cannon_right', 90, 100);
+
+        // 7. Finish-Line Grand Portal Arch (640x360)
+        const finArch = scene.make.graphics({ x: 0, y: 0 });
+        const pw = 640;
+        const ph = 360;
+
+        // Energy Portal Ring Backdrop
+        finArch.fillStyle(0x7c3aed, 0.25);
+        finArch.fillCircle(pw / 2, ph / 2 + 10, 170);
+        finArch.lineStyle(6, 0xa855f7, 0.8);
+        finArch.strokeCircle(pw / 2, ph / 2 + 10, 170);
+        finArch.lineStyle(3, 0x00f2fe, 0.9);
+        finArch.strokeCircle(pw / 2, ph / 2 + 10, 155);
+
+        // Glowing Left Pillar (Cyan AI)
+        finArch.fillStyle(0x0f172a, 1);
+        finArch.fillRoundedRect(40, 60, 50, ph - 60, 12);
+        finArch.lineStyle(4, 0x00f2fe, 1);
+        finArch.strokeRoundedRect(40, 60, 50, ph - 60, 12);
+        finArch.fillStyle(0x00f2fe, 0.8);
+        finArch.fillRect(60, 80, 10, ph - 100);
+
+        // Glowing Right Pillar (Coral Human)
+        finArch.fillStyle(0x0f172a, 1);
+        finArch.fillRoundedRect(pw - 90, 60, 50, ph - 60, 12);
+        finArch.lineStyle(4, 0xff477e, 1);
+        finArch.strokeRoundedRect(pw - 90, 60, 50, ph - 60, 12);
+        finArch.fillStyle(0xff477e, 0.8);
+        finArch.fillRect(pw - 70, 80, 10, ph - 100);
+
+        // Massive Top Arch Crossbeam
+        finArch.fillStyle(0x1e1b4b, 1);
+        finArch.fillRoundedRect(30, 20, pw - 60, 70, 16);
+        finArch.lineStyle(5, 0xd946ef, 1);
+        finArch.strokeRoundedRect(30, 20, pw - 60, 70, 16);
+
+        // Checkered Victory Finish Header Strip
+        const checkW = 28;
+        for (let cx = 50; cx < pw - 50; cx += checkW) {
+            const isAlt = Math.floor(cx / checkW) % 2 === 0;
+            finArch.fillStyle(isAlt ? 0xffffff : 0x090d16, 1);
+            finArch.fillRect(cx, 40, checkW, 30);
+        }
+
+        // Finish Line Neon Laser Beams Shooting Downwards
+        finArch.lineStyle(4, 0x00f2fe, 0.7);
+        finArch.lineBetween(80, 90, 80, ph);
+        finArch.lineStyle(4, 0xff477e, 0.7);
+        finArch.lineBetween(pw - 80, 90, pw - 80, ph);
+        finArch.lineStyle(3, 0xfacc15, 0.85);
+        finArch.lineBetween(pw / 2, 90, pw / 2, ph);
+
+        finArch.generateTexture('finish_portal_arch', pw, ph);
+
+        // 8. Shard polygon for particle break
         const shard = scene.make.graphics({ x: 0, y: 0 });
         shard.fillStyle(0xffffff, 1);
         shard.beginPath();
@@ -141,7 +555,7 @@ export class ArenaVisuals {
         shardTri.fillPath();
         shardTri.generateTexture('break_shard_tri', 30, 30);
 
-        // 4. Sparkle Star Particle
+        // 9. Sparkle Star Particle
         const spark = scene.make.graphics({ x: 0, y: 0 });
         spark.fillStyle(0xffffff, 1);
         spark.fillCircle(16, 16, 8);
@@ -149,13 +563,13 @@ export class ArenaVisuals {
         spark.fillRect(0, 14, 32, 4);
         spark.generateTexture('sparkle_star', 32, 32);
 
-        // 5. Shatter Shockwave Ring
-        const sw = scene.make.graphics({ x: 0, y: 0 });
-        sw.lineStyle(6, 0xffffff, 0.95);
-        sw.strokeEllipse(64, 40, 120, 70);
-        sw.lineStyle(3, 0xffffff, 0.5);
-        sw.strokeEllipse(64, 40, 126, 76);
-        sw.generateTexture('shatter_shockwave', 130, 80);
+        // 10. Shatter Shockwave Ring
+        const swG = scene.make.graphics({ x: 0, y: 0 });
+        swG.lineStyle(6, 0xffffff, 0.95);
+        swG.strokeEllipse(64, 40, 120, 70);
+        swG.lineStyle(3, 0xffffff, 0.5);
+        swG.strokeEllipse(64, 40, 126, 76);
+        swG.generateTexture('shatter_shockwave', 130, 80);
     }
 
     private static generateCharacterVisuals(scene: Scene) {

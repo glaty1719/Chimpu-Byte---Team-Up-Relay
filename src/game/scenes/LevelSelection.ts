@@ -142,7 +142,11 @@ export class LevelSelection extends Scene {
 
             // Interaction
             const hitArea = new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h);
-            graphics.setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+            graphics.setInteractive({
+                hitArea: hitArea, 
+                hitAreaCallback: Phaser.Geom.Rectangle.Contains, 
+                cursor: 'pointer' 
+            });
 
             graphics.on('pointerover', () => {
                 this.tweens.add({ targets: [container, maskGraphics], scale: 1.05, duration: 250, ease: 'Sine.easeOut', overwrite: true });
