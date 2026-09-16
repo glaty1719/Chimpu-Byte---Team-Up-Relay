@@ -20,11 +20,18 @@ export class Preloader extends Scene {
         this.add.rectangle(width / 2, height / 2, 468, 32).setStrokeStyle(1, 0xffffff);
         const bar = this.add.rectangle(width / 2 - 230, height / 2, 4, 28, 0xffffff);
 
-        // Animated Character
+        // Animated Character Animations
         this.anims.create({
             key: 'run',
             frames: this.anims.generateFrameNumbers('chimpu_run', { start: 0, end: 5 }),
             frameRate: 12,
+            repeat: -1
+        });
+
+        this.anims.create({
+            key: 'chimpu_walk',
+            frames: this.anims.generateFrameNumbers('chimpu_run', { start: 0, end: 5 }),
+            frameRate: 5,
             repeat: -1
         });
 

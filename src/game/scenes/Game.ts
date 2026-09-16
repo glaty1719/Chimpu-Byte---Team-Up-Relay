@@ -1,12 +1,11 @@
 import { Scene } from 'phaser';
-import { UILayers } from '../utils/UILayers';
 import { GameDataManager } from '../services/GameDataManager';
-import { DemoTargetFeature } from '../features/DemoTargetFeature';
+import { TeamUpRelayFeature, RelayHUDState } from '../features/TeamUpRelayFeature';
+import { AudioManager } from '../services/AudioManager';
 
 export class Game extends Scene {
     private currentLevel: number = 1;
-    private score: number = 0;
-    private targetFeature: DemoTargetFeature | null = null;
+    private relayFeature: TeamUpRelayFeature | null = null;
     private isGameFinished: boolean = false;
 
     constructor() {
@@ -15,17 +14,16 @@ export class Game extends Scene {
 
     init(data: { level?: number }) {
         this.currentLevel = data.level || 1;
-        this.score = 0;
         this.isGameFinished = false;
     }
 
     create() {
-        const { width, height } = this.scale;
-
-        // 1. Background
-        this.add.image(width / 2, height / 2, 'gameBG')
-            .setDisplaySize(width, height)
-            .setDepth(UILayers.GAME_BACKGROUND);
+        // 1. Play sports BGM
+        try {
+            AudioManager.getInstance().playMusic('sports_bgm');
+        } catch (e) {
+            // Audio fallback handled in AudioManager
+        }
 
         // 2. Launch UI Scene in parallel
         this.scene.launch('UIScene', { gameScene: this });
@@ -36,34 +34,46 @@ export class Game extends Scene {
         this.events.on('resume-game', this.onResumeGame, this);
         this.events.on('restart-game', this.onRestartGame, this);
         this.events.on('quit-game', this.onQuitGame, this);
-
+        this.events.on('relay-player-action', this.onPlayerAction, this);
         this.events.on('shutdown', this.cleanup, this);
 
-        // 4. Initialize Gameplay Feature
-        const targetCount = 3 + (this.currentLevel * 2); // Scales with level
-        this.targetFeature = new DemoTargetFeature(
+        // 4. Initialize Core Team-Up Relay Gameplay Feature
+        this.relayFeature = new TeamUpRelayFeature(
             this,
-            targetCount,
-            (collected, total) => {
-                this.score += 100;
-                this.events.emit('update-hud', { collected, total, score: this.score });
+            this.currentLevel,
+            (hudState: RelayHUDState) => {
+                this.events.emit('update-relay-hud', hudState);
             },
-            () => {
-                this.onLevelComplete();
+            (result) => {
+                this.onLevelComplete(result);
             }
         );
+    }
 
-        // Initial HUD trigger
-        this.events.emit('update-hud', { collected: 0, total: targetCount, score: 0 });
+    update(time: number, delta: number) {
+        if (this.relayFeature) {
+            this.relayFeature.update(time, delta);
+        }
+    }
+
+    private onPlayerAction(leader: 'chimpu' | 'byte') {
+        if (this.relayFeature) {
+            this.relayFeature.handleActionFromUI(leader);
+        }
     }
 
     private onPauseGame() {
-        this.physics.pause();
+        if (this.relayFeature) {
+            this.relayFeature.pause();
+        }
     }
 
     private onResumeGame() {
-        this.physics.resume();
+        if (this.relayFeature) {
+            this.relayFeature.resume();
+        }
     }
+
 
     private onRestartGame(data?: { level?: number }) {
         const nextLevel = data?.level || this.currentLevel;
@@ -75,34 +85,37 @@ export class Game extends Scene {
     private onQuitGame() {
         this.cleanup();
         this.scene.stop('UIScene');
-        this.scene.start('MainMenu');
+        this.scene.start('LevelSelection');
     }
 
-    private onLevelComplete() {
+    private onLevelComplete(result: { score: number; maxCombo: number; level: number; badgeKey: string }) {
         if (this.isGameFinished) return;
         this.isGameFinished = true;
 
         // Save progress to GameDataManager
         const dataManager = GameDataManager.getInstance();
-        dataManager.completeLevel(this.currentLevel, 3, this.score);
+        dataManager.completeLevel(this.currentLevel, 3, result.score);
 
-        // Notify UIScene to display GameOver/Win panel
-        this.events.emit('show-gameover', {
+        // Notify UIScene to display Victory Celebration Modal
+        this.events.emit('show-victory', {
             win: true,
-            score: this.score,
-            level: this.currentLevel
+            score: result.score,
+            maxCombo: result.maxCombo,
+            level: this.currentLevel,
+            badgeKey: result.badgeKey
         });
     }
 
     private cleanup() {
-        if (this.targetFeature) {
-            this.targetFeature.destroy();
-            this.targetFeature = null;
+        if (this.relayFeature) {
+            this.relayFeature.destroy();
+            this.relayFeature = null;
         }
 
         this.events.off('pause-game', this.onPauseGame, this);
         this.events.off('resume-game', this.onResumeGame, this);
         this.events.off('restart-game', this.onRestartGame, this);
         this.events.off('quit-game', this.onQuitGame, this);
+        this.events.off('relay-player-action', this.onPlayerAction, this);
     }
 }

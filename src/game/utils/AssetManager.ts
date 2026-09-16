@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { ArenaVisuals } from '../features/ArenaVisuals';
 
 export class AssetManager {
     static generateTextures(scene: Scene) {
@@ -12,6 +13,8 @@ export class AssetManager {
         sqGraphics.strokeRoundedRect(4, 4, cellSize - 8, cellSize - 8, 8);
         sqGraphics.generateTexture('corner_square', cellSize, cellSize);
 
-        // Add more generic generated textures if needed for the new game
+        // Generate Team-Up Relay visual textures & icons
+        ArenaVisuals.generateAll(scene);
     }
 }
+

@@ -4,7 +4,6 @@ import { AudioManager } from '../services/AudioManager';
 export class SpriteButton {
     public sprite: GameObjects.Sprite;
 
-    private hoverEnabled: boolean = false;
     private baseScaleX: number;
     private baseScaleY: number;
 
@@ -36,14 +35,13 @@ export class SpriteButton {
         // Prevent instant hover on scene start if mouse is already over the button position
         scene.time.delayedCall(100, () => {
             if (!this.sprite.active) return;
-            this.hoverEnabled = true;
             if (this.sprite.input && (this.sprite.input as any).isOver) {
                 this.onHover(true);
             }
         });
     }
 
-    private onHover(isHovering: boolean) {
+    private onHover(_isHovering: boolean) {
         // Hover scaling disabled as per user request
     }
 

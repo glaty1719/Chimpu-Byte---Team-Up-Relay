@@ -125,18 +125,20 @@ export class LevelSelection extends Scene {
             maskGraphics.fillRoundedRect(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20, 20);
             preview.setMask(maskGraphics.createGeometryMask());
 
-            // Level Title
-            const levelTitle = this.add.text(0, -20, "Level", {
-                fontFamily: 'Arial Black', fontSize: '64px', color: '#ffffff',
+            // Level Titles from GDD
+            const levelNames = ["Pick the Leader", "Strength Switch", "Team-Up Final"];
+            const levelTitle = this.add.text(0, -40, `Level ${level}`, {
+                fontFamily: 'Arial Black', fontSize: '50px', color: '#ffffff',
                 stroke: '#000000', strokeThickness: 4
             }).setOrigin(0.5);
 
-            const levelNum = this.add.text(0, 60, `${level}`, {
-                fontFamily: 'Arial Black', fontSize: '100px', color: '#ffcc00',
-                stroke: '#000000', strokeThickness: 6
+            const levelSub = this.add.text(0, 30, levelNames[level - 1] || "", {
+                fontFamily: 'Arial Black', fontSize: '26px', color: '#ffcc00',
+                stroke: '#000000', strokeThickness: 3, align: 'center', wordWrap: { width: w - 40 }
             }).setOrigin(0.5);
 
-            container.add([levelTitle, levelNum]);
+            container.add([levelTitle, levelSub]);
+
 
             // Interaction
             const hitArea = new Phaser.Geom.Rectangle(-w / 2, -h / 2, w, h);

@@ -93,22 +93,26 @@ export class AudioManager {
     }
 
     public playMusic(key: string, loop: boolean = true) {
-        if (!this.scene) return;
-
-        if (this.currentMusic) {
-            // If same music is playing, do nothing
-            if ((this.currentMusic as any).key === key && (this.currentMusic as any).isPlaying) {
-                return;
+        if (this.scene && this.scene.cache.audio.exists(key)) {
+            if (this.currentMusic) {
+                if ((this.currentMusic as any).key === key && (this.currentMusic as any).isPlaying) {
+                    return;
+                }
+                this.currentMusic.stop();
             }
-            this.currentMusic.stop();
-        }
-
-        if (this.scene.cache.audio.exists(key)) {
             this.currentMusic = this.scene.sound.add(key, {
                 loop: loop,
                 volume: this._isMusicMuted ? 0 : this.musicVolume
             });
             this.currentMusic.play();
+        } else {
+            // Procedural Synthesizer BGM fallback
+            import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
+                const synth = SynthesizerAudio.getInstance();
+                synth.setMuted(this._isMusicMuted);
+                synth.setBgmVolume(this.musicVolume);
+                synth.startSportsBGM();
+            });
         }
     }
 
@@ -117,15 +121,33 @@ export class AudioManager {
             this.currentMusic.stop();
             this.currentMusic = null;
         }
+        import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
+            SynthesizerAudio.getInstance().stopSportsBGM();
+        });
     }
 
     public playSFX(key: string, volScale: number = 1.0) {
-        if (!this.scene) return;
         if (this._isSFXMuted) return;
 
-        if (this.scene.cache.audio.exists(key)) {
+        if (this.scene && this.scene.cache.audio.exists(key)) {
             this.scene.sound.play(key, {
                 volume: this.sfxVolume * volScale
+            });
+        } else {
+            // Procedural Synthesizer SFX fallback
+            import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
+                const synth = SynthesizerAudio.getInstance();
+                synth.setSfxVolume(this.sfxVolume * volScale);
+                if (key === 'click' || key === 'button_tap') synth.playButtonTap();
+                else if (key === 'dash') synth.playDash();
+                else if (key === 'gate_break' || key === 'shatter') synth.playGateBreak();
+                else if (key === 'bounce' || key === 'bumper') synth.playGentleBounce();
+                else if (key === 'combo') synth.playCombo(Math.round(volScale * 5));
+                else if (key === 'team_spark') synth.playTeamSpark();
+                else if (key === 'cheer' || key === 'crowd') synth.playCrowdCheer();
+                else if (key === 'badge') synth.playBadgeEarned();
+                else if (key === 'fireworks') synth.playFireworks();
+                else synth.playButtonTap();
             });
         }
     }
@@ -135,3 +157,4 @@ export class AudioManager {
     public isMusicMuted(): boolean { return this._isMusicMuted; }
     public isSFXMuted(): boolean { return this._isSFXMuted; }
 }
+
