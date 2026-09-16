@@ -137,67 +137,34 @@ export class ArenaVisuals {
             stLeft.lineBetween(0, y, 440, y);
         }
 
-        // Audience Silhouettes & Colorful Cheering Glow Sticks on Left Side
-        const stickColors = [0x00f2fe, 0xff477e, 0xa855f7, 0xfacc15, 0x10b981, 0x38bdf8];
-
-        // Tier 3 (Far Left - Denser, smaller silhouette audience)
-        for (let y = 15; y < sh; y += 38) {
-            for (let x = 20; x < 150; x += 28) {
-                const color = stickColors[(x + y) % stickColors.length];
-                const headY = y + (Math.sin(x * 0.2 + y) * 4);
-                // Silhouette head & shoulders
-                stLeft.fillStyle(0x1a2333, 0.95);
-                stLeft.fillCircle(x, headY, 7);
-                stLeft.fillRoundedRect(x - 9, headY + 5, 18, 14, 4);
-
-                // Cheering glow stick
-                stLeft.lineStyle(2.5, color, 0.85);
-                const angle = (x % 2 === 0) ? -0.4 : 0.4;
-                stLeft.lineBetween(x + 5, headY + 2, x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12);
-                stLeft.fillStyle(color, 0.4);
-                stLeft.fillCircle(x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12, 3);
+        // Audience Silhouettes on Left Side (Simple Clean Stadium Crowd)
+        // Tier 3 (Far Left - Upper bleachers)
+        stLeft.fillStyle(0x111c2e, 0.9);
+        for (let y = 16; y < sh; y += 36) {
+            for (let x = 20; x < 150; x += 26) {
+                const headY = y + (Math.sin(x * 0.1 + y) * 3);
+                stLeft.fillCircle(x, headY, 6);
+                stLeft.fillRoundedRect(x - 8, headY + 5, 16, 12, 3);
             }
         }
 
-        // Tier 2 (Mid Left - Medium silhouette audience)
-        for (let y = 20; y < sh; y += 44) {
-            for (let x = 180; x < 310; x += 32) {
-                const color = stickColors[(x * 2 + y) % stickColors.length];
-                const headY = y + (Math.cos(x * 0.15 + y) * 5);
-                stLeft.fillStyle(0x222f46, 0.95);
-                stLeft.fillCircle(x, headY, 9);
-                stLeft.fillRoundedRect(x - 12, headY + 6, 24, 18, 5);
-
-                // Cheering glow stick / waving arm
-                stLeft.lineStyle(3, color, 0.9);
-                const armX = x + (x % 3 === 0 ? 8 : -8);
-                stLeft.lineBetween(armX, headY + 4, armX + (x % 3 === 0 ? 9 : -9), headY - 10);
-                stLeft.fillStyle(color, 0.6);
-                stLeft.fillCircle(armX + (x % 3 === 0 ? 9 : -9), headY - 10, 4);
+        // Tier 2 (Mid Left - Mid bleachers)
+        stLeft.fillStyle(0x19283f, 0.95);
+        for (let y = 20; y < sh; y += 40) {
+            for (let x = 180; x < 310; x += 30) {
+                const headY = y + (Math.cos(x * 0.1 + y) * 3);
+                stLeft.fillCircle(x, headY, 8);
+                stLeft.fillRoundedRect(x - 10, headY + 6, 20, 14, 4);
             }
         }
 
-        // Tier 1 (Front Left - Larger front-row cheering audience)
-        for (let y = 25; y < sh; y += 52) {
-            for (let x = 340; x < 430; x += 38) {
-                const color = stickColors[(x * 3 + y) % stickColors.length];
-                const headY = y + (Math.sin(x * 0.3 + y) * 6);
-                stLeft.fillStyle(0x2c3e5d, 0.98);
-                stLeft.fillCircle(x, headY, 11);
-                stLeft.fillRoundedRect(x - 15, headY + 8, 30, 22, 6);
-
-                // Raised cheering arms
-                stLeft.lineStyle(4, 0x2c3e5d, 1);
-                stLeft.lineBetween(x - 12, headY + 10, x - 18, headY - 4);
-                stLeft.lineBetween(x + 12, headY + 10, x + 18, headY - 4);
-
-                // Dual glow batons
-                stLeft.lineStyle(3, color, 1);
-                stLeft.lineBetween(x - 18, headY - 4, x - 22, headY - 18);
-                stLeft.lineBetween(x + 18, headY - 4, x + 22, headY - 18);
-                stLeft.fillStyle(color, 0.7);
-                stLeft.fillCircle(x - 22, headY - 18, 4.5);
-                stLeft.fillCircle(x + 22, headY - 18, 4.5);
+        // Tier 1 (Front Left - Trackside bleachers)
+        stLeft.fillStyle(0x223552, 1.0);
+        for (let y = 24; y < sh; y += 46) {
+            for (let x = 340; x < 430; x += 34) {
+                const headY = y + (Math.sin(x * 0.15 + y) * 4);
+                stLeft.fillCircle(x, headY, 10);
+                stLeft.fillRoundedRect(x - 13, headY + 7, 26, 16, 5);
             }
         }
 
@@ -261,60 +228,34 @@ export class ArenaVisuals {
             stRight.lineBetween(40, y, 480, y);
         }
 
-        // Tier 1 (Front Right - Larger front-row cheering audience)
-        for (let y = 25; y < sh; y += 52) {
-            for (let x = 50; x < 140; x += 38) {
-                const color = stickColors[(x * 3 + y + 2) % stickColors.length];
-                const headY = y + (Math.cos(x * 0.3 + y) * 6);
-                stRight.fillStyle(0x2c3e5d, 0.98);
-                stRight.fillCircle(x, headY, 11);
-                stRight.fillRoundedRect(x - 15, headY + 8, 30, 22, 6);
-
-                // Raised cheering arms & dual glow batons
-                stRight.lineStyle(4, 0x2c3e5d, 1);
-                stRight.lineBetween(x - 12, headY + 10, x - 18, headY - 4);
-                stRight.lineBetween(x + 12, headY + 10, x + 18, headY - 4);
-
-                stRight.lineStyle(3, color, 1);
-                stRight.lineBetween(x - 18, headY - 4, x - 22, headY - 18);
-                stRight.lineBetween(x + 18, headY - 4, x + 22, headY - 18);
-                stRight.fillStyle(color, 0.7);
-                stRight.fillCircle(x - 22, headY - 18, 4.5);
-                stRight.fillCircle(x + 22, headY - 18, 4.5);
+        // Audience Silhouettes on Right Side (Simple Clean Stadium Crowd)
+        // Tier 1 (Front Right - Trackside bleachers)
+        stRight.fillStyle(0x223552, 1.0);
+        for (let y = 24; y < sh; y += 46) {
+            for (let x = 50; x < 140; x += 34) {
+                const headY = y + (Math.cos(x * 0.15 + y) * 4);
+                stRight.fillCircle(x, headY, 10);
+                stRight.fillRoundedRect(x - 13, headY + 7, 26, 16, 5);
             }
         }
 
-        // Tier 2 (Mid Right - Medium silhouette audience)
-        for (let y = 20; y < sh; y += 44) {
-            for (let x = 170; x < 300; x += 32) {
-                const color = stickColors[(x * 2 + y + 1) % stickColors.length];
-                const headY = y + (Math.sin(x * 0.15 + y) * 5);
-                stRight.fillStyle(0x222f46, 0.95);
-                stRight.fillCircle(x, headY, 9);
-                stRight.fillRoundedRect(x - 12, headY + 6, 24, 18, 5);
-
-                stRight.lineStyle(3, color, 0.9);
-                const armX = x + (x % 3 === 0 ? 8 : -8);
-                stRight.lineBetween(armX, headY + 4, armX + (x % 3 === 0 ? 9 : -9), headY - 10);
-                stRight.fillStyle(color, 0.6);
-                stRight.fillCircle(armX + (x % 3 === 0 ? 9 : -9), headY - 10, 4);
+        // Tier 2 (Mid Right - Mid bleachers)
+        stRight.fillStyle(0x19283f, 0.95);
+        for (let y = 20; y < sh; y += 40) {
+            for (let x = 170; x < 300; x += 30) {
+                const headY = y + (Math.sin(x * 0.1 + y) * 3);
+                stRight.fillCircle(x, headY, 8);
+                stRight.fillRoundedRect(x - 10, headY + 6, 20, 14, 4);
             }
         }
 
-        // Tier 3 (Far Right - Denser, smaller silhouette audience)
-        for (let y = 15; y < sh; y += 38) {
-            for (let x = 330; x < 460; x += 28) {
-                const color = stickColors[(x + y + 3) % stickColors.length];
-                const headY = y + (Math.cos(x * 0.2 + y) * 4);
-                stRight.fillStyle(0x1a2333, 0.95);
-                stRight.fillCircle(x, headY, 7);
-                stRight.fillRoundedRect(x - 9, headY + 5, 18, 14, 4);
-
-                stRight.lineStyle(2.5, color, 0.85);
-                const angle = (x % 2 === 0) ? 0.4 : -0.4;
-                stRight.lineBetween(x + 5, headY + 2, x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12);
-                stRight.fillStyle(color, 0.4);
-                stRight.fillCircle(x + 5 + Math.sin(angle) * 12, headY + 2 - Math.cos(angle) * 12, 3);
+        // Tier 3 (Far Right - Upper bleachers)
+        stRight.fillStyle(0x111c2e, 0.9);
+        for (let y = 16; y < sh; y += 36) {
+            for (let x = 330; x < 460; x += 26) {
+                const headY = y + (Math.cos(x * 0.1 + y) * 3);
+                stRight.fillCircle(x, headY, 6);
+                stRight.fillRoundedRect(x - 8, headY + 5, 16, 12, 3);
             }
         }
 

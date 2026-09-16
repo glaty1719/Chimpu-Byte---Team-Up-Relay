@@ -10,7 +10,7 @@ export class UILayers {
     static readonly GAME_WALLS = 1;
     static readonly GAME_OBSTACLES = 2;
     static readonly GAME_RINGS = 3;
-    static readonly GAME_PLAYER = 10;
+    static readonly GAME_PLAYER = 30;
     static readonly GAME_EFFECTS = 20;
 
     // ===== LAYER 1: Non-Blocking UI =====
