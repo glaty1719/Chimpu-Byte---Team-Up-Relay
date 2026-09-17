@@ -468,15 +468,21 @@ export class UIScene extends Scene {
             data.score,
             data.maxCombo,
             () => {
-                // Next level or replay
+                // Next level
                 const nextLevel = data.level < 3 ? data.level + 1 : data.level;
                 this.gameEvents.emit('restart-game', { level: nextLevel });
                 this.enableTopButtonsOnly();
                 this.victoryModal = null;
             },
             () => {
-                // Return to Level Select
-                this.gameEvents.emit('quit-game');
+                // Play again (replay current level)
+                this.gameEvents.emit('restart-game', { level: data.level });
+                this.enableTopButtonsOnly();
+                this.victoryModal = null;
+            },
+            () => {
+                // Return Home (MainMenu)
+                this.gameEvents.emit('home-game');
                 this.enableTopButtonsOnly();
                 this.victoryModal = null;
             }

@@ -34,6 +34,7 @@ export class Game extends Scene {
         this.events.on('resume-game', this.onResumeGame, this);
         this.events.on('restart-game', this.onRestartGame, this);
         this.events.on('quit-game', this.onQuitGame, this);
+        this.events.on('home-game', this.onHomeGame, this);
         this.events.on('relay-player-action', this.onPlayerAction, this);
         this.events.on('shutdown', this.cleanup, this);
 
@@ -88,6 +89,12 @@ export class Game extends Scene {
         this.scene.start('LevelSelection');
     }
 
+    private onHomeGame() {
+        this.cleanup();
+        this.scene.stop('UIScene');
+        this.scene.start('MainMenu');
+    }
+
     private onLevelComplete(result: { score: number; maxCombo: number; level: number; badgeKey: string }) {
         if (this.isGameFinished) return;
         this.isGameFinished = true;
@@ -116,6 +123,7 @@ export class Game extends Scene {
         this.events.off('resume-game', this.onResumeGame, this);
         this.events.off('restart-game', this.onRestartGame, this);
         this.events.off('quit-game', this.onQuitGame, this);
+        this.events.off('home-game', this.onHomeGame, this);
         this.events.off('relay-player-action', this.onPlayerAction, this);
     }
 }

@@ -59,6 +59,7 @@ export class TeamUpRelayFeature {
 
     // Active Gate
     private activeGateContainer: GameObjects.Container | null = null;
+    private finishLineContainer: GameObjects.Container | null = null;
     private gateApproachTween: Phaser.Tweens.Tween | null = null;
     private gateBobTween: Phaser.Tweens.Tween | null = null;
     private introContainer: GameObjects.Container | null = null;
@@ -84,7 +85,18 @@ export class TeamUpRelayFeature {
     ) {
         this.scene = scene;
         const config = GAME_LEVELS.find(l => l.levelNumber === levelNumber) || GAME_LEVELS[0];
-        this.levelConfig = config;
+        
+        // Randomize questions for this level playthrough (Fisher-Yates shuffle)
+        const shuffledTasks = [...config.tasks];
+        for (let i = shuffledTasks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledTasks[i], shuffledTasks[j]] = [shuffledTasks[j], shuffledTasks[i]];
+        }
+
+        this.levelConfig = {
+            ...config,
+            tasks: shuffledTasks
+        };
         this.onHUDUpdate = onHUDUpdate;
         this.onCompleteCallback = onComplete;
 
@@ -1028,69 +1040,125 @@ export class TeamUpRelayFeature {
 
     private playFinishLinePortal() {
         this.isTransitioning = true;
-        const { width } = this.scene.scale;
-
-        AudioManager.getInstance().playSFX('cheer');
-        AudioManager.getInstance().playSFX('fireworks');
-
-        // Grand Holographic Finish-Line Portal (2.5D Scale-In)
-        const portal = this.scene.add.image(width / 2, this.GATE_TARGET_Y - 40, 'finish_portal_arch')
-            .setDepth(UILayers.GAME_EFFECTS)
-            .setScale(0.5)
-            .setAlpha(0);
-
-        this.scene.tweens.add({
-            targets: portal,
-            scale: 1.15,
-            alpha: 1,
-            y: this.GATE_TARGET_Y,
-            duration: 600,
-            ease: 'Back.easeOut'
-        });
-
-        // Victory Ribbon & Finish Banner
-        const victoryRibbon = this.scene.add.text(width / 2, this.GATE_TARGET_Y + 18, '★ FINISH LINE - RELAY COMPLETE! ★', {
-            fontFamily: 'Arial Black',
-            fontSize: '38px',
-            color: '#ffffff',
-            backgroundColor: '#d946ef',
-            padding: { x: 36, y: 16 }
-        }).setOrigin(0.5).setScale(0.8).setDepth(UILayers.GAME_EFFECTS + 2);
-
-        this.scene.tweens.add({
-            targets: victoryRibbon,
-            scale: 1.05,
-            duration: 600,
-            ease: 'Back.easeOut'
-        });
-
-        // Launch double stadium confetti cannon blast
-        this.launchConfetti(true);
-        this.scene.time.delayedCall(450, () => {
-            if (!this.isDestroyed) this.launchConfetti(false);
-        });
-
-        // High-five runners sprint forward through portal
+        this.canAcceptInput = false;
         this.setRunnersState('running');
+        this.isTrackScrolling = true;
+
+        const { width } = this.scene.scale;
+        const centerX = width / 2;
+        const finishY = this.GATE_TARGET_Y;
+
+        if (this.finishLineContainer) {
+            this.finishLineContainer.destroy();
+            this.finishLineContainer = null;
+        }
+
+        // Grand Finish-Line Structure (Full Span 1000px Track Width at 1:1 Scale)
+        const finishCont = this.scene.add.container(centerX, finishY)
+            .setDepth(UILayers.GAME_EFFECTS)
+            .setScale(1.0)
+            .setAlpha(0);
+        this.finishLineContainer = finishCont;
+
+        // 1. Checkered Finish Line Ground Strip (Full 1000px Track Span)
+        const groundFinish = this.scene.add.graphics();
+        const gw = 1000;
+        const gh = 36;
+        const gy = 40;
+        const cellW = 32;
+        for (let gx = -gw / 2; gx < gw / 2; gx += cellW) {
+            const isAlt = Math.floor((gx + gw / 2) / cellW) % 2 === 0;
+            groundFinish.fillStyle(isAlt ? 0xffffff : 0x090d16, 0.95);
+            groundFinish.fillRect(gx, gy, cellW, gh);
+        }
+        groundFinish.lineStyle(3, 0xfacc15, 0.95);
+        groundFinish.lineBetween(-gw / 2, gy, gw / 2, gy);
+        groundFinish.lineBetween(-gw / 2, gy + gh, gw / 2, gy + gh);
+        finishCont.add(groundFinish);
+
+        // 2. Holographic Finish Portal Arch (Full 1000px Track Span)
+        const portal = this.scene.add.image(0, -60, 'finish_portal_arch')
+            .setOrigin(0.5, 0.5)
+            .setScale(1.5625); // 640 * 1.5625 = exactly 1000px wide
+        finishCont.add(portal);
+
+        // 3. Full-Span Victory Ribbon stretched across the 1000px track
+        const ribbonY = 18;
+        const ribbonH = 48;
+
+        // Left Ribbon Half (-500 to 0)
+        const ribbonLeftCont = this.scene.add.container(0, ribbonY);
+        const ribbonLeftBg = this.scene.add.graphics();
+        ribbonLeftBg.fillStyle(0xd946ef, 0.95);
+        ribbonLeftBg.fillRect(-500, -ribbonH / 2, 500, ribbonH);
+        ribbonLeftBg.lineStyle(3, 0xfacc15, 1);
+        ribbonLeftBg.lineBetween(-500, -ribbonH / 2, 0, -ribbonH / 2);
+        ribbonLeftBg.lineBetween(-500, ribbonH / 2, 0, ribbonH / 2);
+        ribbonLeftCont.add(ribbonLeftBg);
+
+        const textLeft = this.scene.add.text(-250, 0, '★ ★ ★  FINISH', {
+            fontFamily: 'Arial Black',
+            fontSize: '32px',
+            color: '#ffffff',
+            stroke: '#4a044e',
+            strokeThickness: 5
+        }).setOrigin(0.5, 0.5);
+        ribbonLeftCont.add(textLeft);
+        finishCont.add(ribbonLeftCont);
+
+        // Right Ribbon Half (0 to 500)
+        const ribbonRightCont = this.scene.add.container(0, ribbonY);
+        const ribbonRightBg = this.scene.add.graphics();
+        ribbonRightBg.fillStyle(0xd946ef, 0.95);
+        ribbonRightBg.fillRect(0, -ribbonH / 2, 500, ribbonH);
+        ribbonRightBg.lineStyle(3, 0xfacc15, 1);
+        ribbonRightBg.lineBetween(0, -ribbonH / 2, 500, -ribbonH / 2);
+        ribbonRightBg.lineBetween(0, ribbonH / 2, 500, ribbonH / 2);
+        ribbonRightCont.add(ribbonRightBg);
+
+        const textRight = this.scene.add.text(250, 0, 'LINE  ★ ★ ★', {
+            fontFamily: 'Arial Black',
+            fontSize: '32px',
+            color: '#ffffff',
+            stroke: '#4a044e',
+            strokeThickness: 5
+        }).setOrigin(0.5, 0.5);
+        ribbonRightCont.add(textRight);
+        finishCont.add(ribbonRightCont);
+
+        // Smooth fade-in at full span dimensions
+        this.scene.tweens.add({
+            targets: finishCont,
+            alpha: 1,
+            duration: 350,
+            ease: 'Sine.easeOut'
+        });
+
+        // Sprites sprint forward past the banner and through the portal
+        const targetPastGateY = finishY - 120; // 340 (past the banner at 478 and portal at 460)
+
         this.scene.tweens.add({
             targets: [this.byteContainer],
-            x: width / 2 - 70,
-            y: this.GATE_TARGET_Y + 50,
-            duration: 700,
+            x: centerX - 55,
+            y: targetPastGateY,
+            duration: 1100,
             ease: 'Sine.easeOut'
         });
 
         this.scene.tweens.add({
             targets: [this.chimpuContainer],
-            x: width / 2 + 70,
-            y: this.GATE_TARGET_Y + 50,
-            duration: 700,
+            x: centerX + 55,
+            y: targetPastGateY,
+            duration: 1100,
             ease: 'Sine.easeOut',
             onComplete: () => {
+                this.isTrackScrolling = false;
+
                 if (this.byteBobTween) { this.byteBobTween.stop(); this.byteBobTween = null; }
                 if (this.chimpuBobTween) { this.chimpuBobTween.stop(); this.chimpuBobTween = null; }
                 if (this.byteSidewaysTween) { this.byteSidewaysTween.stop(); this.byteSidewaysTween = null; }
                 if (this.chimpuSidewaysTween) { this.chimpuSidewaysTween.stop(); this.chimpuSidewaysTween = null; }
+
                 AudioManager.getInstance().playSFX('badge');
                 this.scene.time.delayedCall(1200, () => {
                     this.onCompleteCallback({
@@ -1101,6 +1169,53 @@ export class TeamUpRelayFeature {
                     });
                 });
             }
+        });
+
+        // Break Ribbon & Fire Confetti as sprites run through the banner (~500ms)
+        this.scene.time.delayedCall(500, () => {
+            if (this.isDestroyed || !finishCont.active) return;
+
+            AudioManager.getInstance().playSFX('cheer');
+            AudioManager.getInstance().playSFX('fireworks');
+
+            // 1. Ribbon snaps in two and flutters away
+            this.scene.tweens.add({
+                targets: ribbonLeftCont,
+                x: -160,
+                y: ribbonY - 20,
+                angle: -25,
+                alpha: 0,
+                duration: 450,
+                ease: 'Quad.easeOut'
+            });
+
+            this.scene.tweens.add({
+                targets: ribbonRightCont,
+                x: 160,
+                y: ribbonY - 20,
+                angle: 25,
+                alpha: 0,
+                duration: 450,
+                ease: 'Quad.easeOut'
+            });
+
+            // 2. Central Ribbon Snap Sparkle Flash
+            const burstFlash = this.scene.add.circle(centerX, finishY + ribbonY, 40, 0xffffff, 0.95)
+                .setDepth(UILayers.GAME_EFFECTS + 15);
+            this.scene.tweens.add({
+                targets: burstFlash,
+                scale: 3.0,
+                alpha: 0,
+                duration: 300,
+                ease: 'Quad.easeOut',
+                onComplete: () => burstFlash.destroy()
+            });
+
+            // 3. Dual Confetti Cannon Blast
+            this.launchConfetti(true);
+            this.scene.time.delayedCall(400, () => {
+                if (!this.isDestroyed) this.launchConfetti(false);
+            });
         });
     }
 
@@ -1316,6 +1431,10 @@ export class TeamUpRelayFeature {
         if (this.activeGateContainer) {
             this.activeGateContainer.destroy();
             this.activeGateContainer = null;
+        }
+        if (this.finishLineContainer) {
+            this.finishLineContainer.destroy();
+            this.finishLineContainer = null;
         }
         if (this.introContainer) {
             this.introContainer.destroy();
