@@ -26,7 +26,7 @@ export class Game extends Scene {
         }
 
         // 2. Launch UI Scene in parallel
-        this.scene.launch('UIScene', { gameScene: this });
+        this.scene.launch('UIScene', { gameScene: this, level: this.currentLevel });
         this.scene.bringToTop('UIScene');
 
         // 3. Register Event Listeners from UI

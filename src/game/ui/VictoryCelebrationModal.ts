@@ -49,16 +49,16 @@ export class VictoryCelebrationModal {
         // Title Ribbon
         const title = scene.add.text(0, -mh / 2 + 50, '★ RELAY VICTORY! ★', {
             fontFamily: 'Arial Black',
-            fontSize: '44px',
+            fontSize: '52px',
             color: '#facc15',
             stroke: '#000000',
-            strokeThickness: 6
+            strokeThickness: 7
         }).setOrigin(0.5);
         this.container.add(title);
 
         const levelSub = scene.add.text(0, -mh / 2 + 105, levelConfig.title, {
             fontFamily: 'Arial Black',
-            fontSize: '24px',
+            fontSize: '28px',
             color: '#38bdf8'
         }).setOrigin(0.5);
         this.container.add(levelSub);
@@ -81,10 +81,10 @@ export class VictoryCelebrationModal {
 
             const badgeTitle = scene.add.text(-260, 80, levelConfig.badgeName, {
                 fontFamily: 'Arial Black',
-                fontSize: '20px',
+                fontSize: '24px',
                 color: '#facc15',
                 stroke: '#000000',
-                strokeThickness: 3
+                strokeThickness: 4
             }).setOrigin(0.5);
             this.container.add(badgeTitle);
         }
@@ -99,19 +99,19 @@ export class VictoryCelebrationModal {
 
         const scoreText = scene.add.text(140, -75, `Total Score: ${score}`, {
             fontFamily: 'Arial Black',
-            fontSize: '26px',
+            fontSize: '30px',
             color: '#4ade80'
         }).setOrigin(0.5);
 
         const comboText = scene.add.text(140, -35, `Max Streak: ${maxCombo}x Combo`, {
             fontFamily: 'Arial Black',
-            fontSize: '22px',
+            fontSize: '26px',
             color: '#38bdf8'
         }).setOrigin(0.5);
 
         const teamSparkText = scene.add.text(140, 5, `Team Chemistry: 100% Spark!`, {
             fontFamily: 'Arial Black',
-            fontSize: '20px',
+            fontSize: '24px',
             color: '#c084fc'
         }).setOrigin(0.5);
 
@@ -120,23 +120,23 @@ export class VictoryCelebrationModal {
         // Educational Takeaway Card
         const eduBox = scene.add.graphics();
         eduBox.fillStyle(0x1e1b4b, 0.9);
-        eduBox.fillRoundedRect(-mw / 2 + 40, 120, mw - 80, 100, 14);
+        eduBox.fillRoundedRect(-mw / 2 + 40, 115, mw - 80, 105, 14);
         eduBox.lineStyle(2, 0xa855f7, 0.8);
-        eduBox.strokeRoundedRect(-mw / 2 + 40, 120, mw - 80, 100, 14);
+        eduBox.strokeRoundedRect(-mw / 2 + 40, 115, mw - 80, 105, 14);
         this.container.add(eduBox);
 
-        const eduLabel = scene.add.text(0, 140, '💡 KEY TAKEAWAY', {
+        const eduLabel = scene.add.text(0, 136, '💡 KEY TAKEAWAY', {
             fontFamily: 'Arial Black',
-            fontSize: '18px',
+            fontSize: '22px',
             color: '#facc15'
         }).setOrigin(0.5);
 
-        const eduDesc = scene.add.text(0, 175, levelConfig.description, {
+        const eduDesc = scene.add.text(0, 172, levelConfig.description, {
             fontFamily: 'Arial',
-            fontSize: '19px',
+            fontSize: '24px',
             color: '#e2e8f0',
             align: 'center',
-            wordWrap: { width: mw - 120 }
+            wordWrap: { width: mw - 100 }
         }).setOrigin(0.5);
 
         this.container.add([eduLabel, eduDesc]);
@@ -148,17 +148,17 @@ export class VictoryCelebrationModal {
         // 1. Next Level Button
         const nextBtnBg = scene.add.graphics();
         nextBtnBg.fillStyle(0x10b981, 1);
-        nextBtnBg.fillRoundedRect(60, 240, 260, 60, 14);
+        nextBtnBg.fillRoundedRect(50, 238, 280, 64, 16);
         nextBtnBg.lineStyle(3, 0xffffff, 1);
-        nextBtnBg.strokeRoundedRect(60, 240, 260, 60, 14);
+        nextBtnBg.strokeRoundedRect(50, 238, 280, 64, 16);
 
         const nextLabel = scene.add.text(190, 270, btnNextText, {
             fontFamily: 'Arial Black',
-            fontSize: '22px',
+            fontSize: '26px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
-        const nextHit = scene.add.zone(190, 270, 260, 60).setInteractive({ useHandCursor: true });
+        const nextHit = scene.add.zone(190, 270, 280, 64).setInteractive({ useHandCursor: true });
         nextHit.on('pointerdown', () => {
             AudioManager.getInstance().playSFX('button_tap');
             this.destroy();
@@ -168,17 +168,17 @@ export class VictoryCelebrationModal {
         // 2. Level Select Button
         const lvlBtnBg = scene.add.graphics();
         lvlBtnBg.fillStyle(0x3b82f6, 1);
-        lvlBtnBg.fillRoundedRect(-320, 240, 260, 60, 14);
+        lvlBtnBg.fillRoundedRect(-330, 238, 280, 64, 16);
         lvlBtnBg.lineStyle(3, 0xffffff, 1);
-        lvlBtnBg.strokeRoundedRect(-320, 240, 260, 60, 14);
+        lvlBtnBg.strokeRoundedRect(-330, 238, 280, 64, 16);
 
         const lvlLabel = scene.add.text(-190, 270, 'LEVEL SELECT', {
             fontFamily: 'Arial Black',
-            fontSize: '22px',
+            fontSize: '26px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
-        const lvlHit = scene.add.zone(-190, 270, 260, 60).setInteractive({ useHandCursor: true });
+        const lvlHit = scene.add.zone(-190, 270, 280, 64).setInteractive({ useHandCursor: true });
         lvlHit.on('pointerdown', () => {
             AudioManager.getInstance().playSFX('button_tap');
             this.destroy();

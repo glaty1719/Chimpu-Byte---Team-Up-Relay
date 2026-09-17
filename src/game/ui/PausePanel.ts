@@ -43,7 +43,7 @@ export class PausePanel {
             buttonsYOffset,
             'pause_panel_btn',
             'RESUME',
-            32,
+            38,
             () => {
                 this.destroy();
                 onResume();
@@ -59,7 +59,7 @@ export class PausePanel {
             buttonsYOffset + buttonSpacing,
             'pause_panel_btn',
             'RESTART',
-            32,
+            38,
             () => {
                 this.destroy();
                 onRestart();
@@ -75,7 +75,7 @@ export class PausePanel {
             buttonsYOffset + (buttonSpacing * 2),
             'pause_panel_btn',
             'QUIT',
-            32,
+            38,
             () => {
                 this.destroy();
                 onQuit();

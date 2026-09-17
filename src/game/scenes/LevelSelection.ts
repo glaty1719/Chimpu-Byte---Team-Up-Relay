@@ -57,8 +57,8 @@ export class LevelSelection extends Scene {
         panelGraphics.fillCircle(panelX + panelW / 4, panelY - panelH / 2 + rivetOffset / 2, 5);
 
         // Header Label ("Level Select")
-        const headerW = 400;
-        const headerH = 80;
+        const headerW = 460;
+        const headerH = 88;
         const headerX = panelX;
         const headerY = panelY - panelH / 2;
 
@@ -66,15 +66,15 @@ export class LevelSelection extends Scene {
         headerGraphics.setDepth(UILayers.UI_BACKGROUND_PANELS + 5);
         headerGraphics.fillStyle(0x004d66, 1);
         headerGraphics.lineStyle(6, 0x7db9e8, 1);
-        headerGraphics.fillRoundedRect(headerX - headerW / 2, headerY - headerH / 2, headerW, headerH, 40);
-        headerGraphics.strokeRoundedRect(headerX - headerW / 2, headerY - headerH / 2, headerW, headerH, 40);
+        headerGraphics.fillRoundedRect(headerX - headerW / 2, headerY - headerH / 2, headerW, headerH, 44);
+        headerGraphics.strokeRoundedRect(headerX - headerW / 2, headerY - headerH / 2, headerW, headerH, 44);
 
         this.add.text(headerX, headerY, "Level Select", {
             fontFamily: 'Arial Black',
-            fontSize: '44px',
+            fontSize: '52px',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 2
+            strokeThickness: 3
         }).setOrigin(0.5).setDepth(UILayers.UI_TEXT + 10);
 
         // Cards layout
@@ -127,14 +127,14 @@ export class LevelSelection extends Scene {
 
             // Level Titles from GDD
             const levelNames = ["Pick the Leader", "Strength Switch", "Team-Up Final"];
-            const levelTitle = this.add.text(0, -40, `Level ${level}`, {
-                fontFamily: 'Arial Black', fontSize: '50px', color: '#ffffff',
-                stroke: '#000000', strokeThickness: 4
+            const levelTitle = this.add.text(0, -42, `Level ${level}`, {
+                fontFamily: 'Arial Black', fontSize: '58px', color: '#ffffff',
+                stroke: '#000000', strokeThickness: 5
             }).setOrigin(0.5);
 
-            const levelSub = this.add.text(0, 30, levelNames[level - 1] || "", {
-                fontFamily: 'Arial Black', fontSize: '26px', color: '#ffcc00',
-                stroke: '#000000', strokeThickness: 3, align: 'center', wordWrap: { width: w - 40 }
+            const levelSub = this.add.text(0, 32, levelNames[level - 1] || "", {
+                fontFamily: 'Arial Black', fontSize: '32px', color: '#ffcc00',
+                stroke: '#000000', strokeThickness: 4, align: 'center', wordWrap: { width: w - 30 }
             }).setOrigin(0.5);
 
             container.add([levelTitle, levelSub]);

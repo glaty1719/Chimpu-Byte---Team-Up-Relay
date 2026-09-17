@@ -45,8 +45,6 @@ export class TeamUpRelayFeature {
     private trackTiles: GameObjects.TileSprite[] = [];
     private leftAudienceLayer: GameObjects.TileSprite | null = null;
     private rightAudienceLayer: GameObjects.TileSprite | null = null;
-    private leftCannonSprite: GameObjects.Sprite | null = null;
-    private rightCannonSprite: GameObjects.Sprite | null = null;
     private sideDecorations: GameObjects.GameObject[] = [];
     private chimpuContainer!: GameObjects.Container;
     private byteContainer!: GameObjects.Container;
@@ -62,6 +60,8 @@ export class TeamUpRelayFeature {
     // Active Gate
     private activeGateContainer: GameObjects.Container | null = null;
     private gateApproachTween: Phaser.Tweens.Tween | null = null;
+    private gateBobTween: Phaser.Tweens.Tween | null = null;
+    private introContainer: GameObjects.Container | null = null;
     private currentTeamStep: number = 0; // 0 = first step, 1 = second step
     private linkingBeam: GameObjects.Graphics | null = null;
 
@@ -72,7 +72,7 @@ export class TeamUpRelayFeature {
     private readonly LANE_X_BYTE = 720;
     private readonly LANE_X_CHIMPU = 1200;
     private readonly RUNNER_Y = 900;
-    private readonly HORIZON_Y = 270;
+    private readonly HORIZON_Y = 0;
     private readonly GATE_TARGET_Y = 460;
 
 
@@ -108,58 +108,24 @@ export class TeamUpRelayFeature {
         this.scene.add.rectangle(width / 2, height / 2, width, height, 0x050811)
             .setDepth(UILayers.GAME_BACKGROUND);
 
-        // 2. Stadium Upper Arena Sky / Canopy Arch
-        const canopyG = this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 1);
-        canopyG.fillStyle(0x0a1020, 0.9);
-        canopyG.fillRect(0, 0, width, 180);
-        canopyG.lineStyle(4, 0x1e293b, 1);
-        canopyG.lineBetween(0, 180, width, 180);
-        canopyG.lineStyle(2, 0x00f2fe, 0.5);
-        canopyG.lineBetween(0, 180, width, 180);
-
-        // Digital Sports Header Arena Title in background
-        const arenaTitle = this.scene.add.text(width / 2, 70, '⚡ TEAM-UP RELAY CYBER STADIUM ⚡', {
-            fontFamily: 'Arial Black',
-            fontSize: '26px',
-            color: '#38bdf8',
-            align: 'center'
-        }).setOrigin(0.5).setAlpha(0.6).setDepth(UILayers.GAME_BACKGROUND + 2);
-        this.sideDecorations.push(arenaTitle);
-
         // 3. PARALLEL AUDIENCE & STADIUM SILHOUETTES ON BOTH SIDES
         // Left Stadium & Audience Grandstand (x: 0 to 460)
-        this.leftAudienceLayer = this.scene.add.tileSprite(230, height / 2 + 60, 460, height, 'stadium_left_side')
+        this.leftAudienceLayer = this.scene.add.tileSprite(230, height / 2, 460, height, 'stadium_left_side')
             .setDepth(UILayers.GAME_BACKGROUND + 2)
             .setAlpha(0.95);
 
         // Right Stadium & Audience Grandstand (x: 1460 to 1920)
-        this.rightAudienceLayer = this.scene.add.tileSprite(1690, height / 2 + 60, 460, height, 'stadium_right_side')
+        this.rightAudienceLayer = this.scene.add.tileSprite(1690, height / 2, 460, height, 'stadium_right_side')
             .setDepth(UILayers.GAME_BACKGROUND + 2)
             .setAlpha(0.95);
 
         // 4. Two-Lane Neon Arena Track (Center x: 460 to 1460, width: 1000)
         const trackW = 1000;
         const trackH = height;
-        const track = this.scene.add.tileSprite(width / 2, height / 2 + 60, trackW, trackH, 'neon_track_tile')
+        const track = this.scene.add.tileSprite(width / 2, height / 2, trackW, trackH, 'neon_track_tile')
             .setDepth(UILayers.GAME_BACKGROUND + 3);
         this.trackTiles.push(track);
 
-        // 7. Confetti Cannon Launchers on Trackside Barriers
-        this.leftCannonSprite = this.scene.add.sprite(445, 780, 'confetti_cannon_left')
-            .setDepth(UILayers.GAME_BACKGROUND + 4)
-            .setOrigin(0.5, 0.8);
-        this.rightCannonSprite = this.scene.add.sprite(1475, 780, 'confetti_cannon_right')
-            .setDepth(UILayers.GAME_BACKGROUND + 4)
-            .setOrigin(0.5, 0.8);
-        this.sideDecorations.push(this.leftCannonSprite, this.rightCannonSprite);
-
-        // 8. Stadium Floodlight Beams (Angled searchlights)
-        const floodG = this.scene.add.graphics().setDepth(UILayers.GAME_BACKGROUND + 3);
-        floodG.fillStyle(0x00f2fe, 0.07);
-        floodG.fillTriangle(0, 0, 800, height, 180, height);
-        floodG.fillStyle(0xff477e, 0.07);
-        floodG.fillTriangle(width, 0, width - 800, height, width - 180, height);
-        this.sideDecorations.push(floodG);
     }
 
 
@@ -219,53 +185,118 @@ export class TeamUpRelayFeature {
 
     private playLevelIntroRun() {
         this.isTrackScrolling = true;
+        const { width, height } = this.scene.scale;
 
-        // Run together at bottom-center for 180ms, then sprint upward diagonally into their respective lane positions
-        this.scene.time.delayedCall(180, () => {
-            if (this.isDestroyed) return;
+        // Level Intro Announcement Banner (displayed in center before sprites move outward)
+        if (this.introContainer) {
+            this.introContainer.destroy();
+            this.introContainer = null;
+        }
 
-            // Byte runs upward-left to lane position
-            this.scene.tweens.add({
-                targets: this.byteContainer,
-                x: this.LANE_X_BYTE,
-                y: this.RUNNER_Y,
-                duration: 850,
-                ease: 'Quad.easeOut'
-            });
+        const introCont = this.scene.add.container(width / 2, height / 2 - 40)
+            .setDepth(UILayers.UI_TEXT + 10)
+            .setScale(0.8)
+            .setAlpha(0);
+        this.introContainer = introCont;
 
-            // Chimpu runs upward-right to lane position
-            this.scene.tweens.add({
-                targets: this.chimpuContainer,
-                x: this.LANE_X_CHIMPU,
-                y: this.RUNNER_Y,
-                duration: 850,
-                ease: 'Quad.easeOut',
-                onComplete: () => {
-                    if (this.isDestroyed) return;
+        const cardW = 920;
+        const cardH = 150;
+        const bg = this.scene.add.graphics();
+        // Cyber glowing backdrop
+        bg.fillStyle(0x0f172a, 0.95);
+        bg.fillRoundedRect(-cardW / 2, -cardH / 2, cardW, cardH, 24);
+        bg.lineStyle(4, 0x00f2fe, 0.9);
+        bg.strokeRoundedRect(-cardW / 2, -cardH / 2, cardW, cardH, 24);
 
-                    // Start rhythmic running bob once settled in lane positions
-                    this.byteBobTween = this.scene.tweens.add({
+        // Header: LEVEL NUMBER & TITLE
+        const titleStr = this.levelConfig.title || `Level ${this.levelConfig.levelNumber}`;
+        const titleText = this.scene.add.text(0, 0, titleStr, {
+            fontFamily: 'Arial Black',
+            fontSize: '64px',
+            color: '#38bdf8',
+            stroke: '#000000',
+            strokeThickness: 8,
+            align: 'center'
+        }).setOrigin(0.5);
+
+        introCont.add([bg, titleText]);
+
+        // Intro Sequence:
+        // 1. Pop-in smoothly
+        this.scene.tweens.add({
+            targets: introCont,
+            scale: 1.0,
+            alpha: 1,
+            duration: 450,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // 2. Hold on screen for 1.4s while runners run together at bottom-center
+                this.scene.time.delayedCall(1400, () => {
+                    if (this.isDestroyed) {
+                        introCont.destroy();
+                        this.introContainer = null;
+                        return;
+                    }
+
+                    // 3. Fade and float out
+                    this.scene.tweens.add({
+                        targets: introCont,
+                        alpha: 0,
+                        scale: 1.08,
+                        y: height / 2 - 80,
+                        duration: 350,
+                        ease: 'Quad.easeIn',
+                        onComplete: () => {
+                            introCont.destroy();
+                            this.introContainer = null;
+                        }
+                    });
+
+                    // 4. Sprites sprint diagonally into their respective lane positions
+                    // Byte runs upward-left to lane position
+                    this.scene.tweens.add({
                         targets: this.byteContainer,
-                        y: this.RUNNER_Y - 8,
-                        duration: 260,
-                        yoyo: true,
-                        repeat: -1,
-                        ease: 'Sine.easeInOut'
-                    });
-                    this.chimpuBobTween = this.scene.tweens.add({
-                        targets: this.chimpuContainer,
-                        y: this.RUNNER_Y - 8,
-                        duration: 260,
-                        yoyo: true,
-                        repeat: -1,
-                        ease: 'Sine.easeInOut',
-                        delay: 130
+                        x: this.LANE_X_BYTE,
+                        y: this.RUNNER_Y,
+                        duration: 850,
+                        ease: 'Quad.easeOut'
                     });
 
-                    // Runners are in position: spawn the first gate
-                    this.spawnGateForTask(0);
-                }
-            });
+                    // Chimpu runs upward-right to lane position
+                    this.scene.tweens.add({
+                        targets: this.chimpuContainer,
+                        x: this.LANE_X_CHIMPU,
+                        y: this.RUNNER_Y,
+                        duration: 850,
+                        ease: 'Quad.easeOut',
+                        onComplete: () => {
+                            if (this.isDestroyed) return;
+
+                            // Start rhythmic running bob once settled in lane positions
+                            this.byteBobTween = this.scene.tweens.add({
+                                targets: this.byteContainer,
+                                y: this.RUNNER_Y - 8,
+                                duration: 260,
+                                yoyo: true,
+                                repeat: -1,
+                                ease: 'Sine.easeInOut'
+                            });
+                            this.chimpuBobTween = this.scene.tweens.add({
+                                targets: this.chimpuContainer,
+                                y: this.RUNNER_Y - 8,
+                                duration: 260,
+                                yoyo: true,
+                                repeat: -1,
+                                ease: 'Sine.easeInOut',
+                                delay: 130
+                            });
+
+                            // Runners are in position: spawn the first gate
+                            this.spawnGateForTask(0);
+                        }
+                    });
+                });
+            }
         });
     }
 
@@ -445,8 +476,8 @@ export class TeamUpRelayFeature {
         const { width } = this.scene.scale;
         const gateCont = this.scene.add.container(width / 2, this.HORIZON_Y)
             .setDepth(UILayers.GAME_EFFECTS)
-            .setScale(0.22)
-            .setAlpha(0.2);
+            .setScale(0.05)
+            .setAlpha(0);
 
         // Gate Frame selection
         let frameKey = 'gate_frame_ai';
@@ -457,9 +488,9 @@ export class TeamUpRelayFeature {
         gateCont.add(frameImg);
 
         // Task Billboard Card (matches gate frame width)
-        const cardW = 920;
-        const cardH = 320;
-        const cardY = -160;
+        const cardW = 940;
+        const cardH = 390;
+        const cardY = -195;
         const cardBg = this.scene.add.graphics();
         cardBg.fillStyle(0x0f172a, 0.95);
         cardBg.fillRoundedRect(-cardW / 2, cardY, cardW, cardH, 20);
@@ -467,32 +498,32 @@ export class TeamUpRelayFeature {
         cardBg.strokeRoundedRect(-cardW / 2, cardY, cardW, cardH, 20);
         gateCont.add(cardBg);
 
-        // Task Category Icon (enlarged)
+        // Task Category Icon (enlarged with clean top padding)
         if (this.scene.textures.exists(task.iconKey)) {
-            const icon = this.scene.add.image(0, -78, task.iconKey).setScale(1.2);
+            const icon = this.scene.add.image(0, -122, task.iconKey).setScale(1.25);
             gateCont.add(icon);
         }
 
-        // Task Title Text (enlarged)
-        const titleText = this.scene.add.text(0, 12, task.title, {
+        // Task Title Text (enlarged with increased padding from icon)
+        const titleText = this.scene.add.text(0, -2, task.title, {
             fontFamily: 'Arial Black',
-            fontSize: '34px',
+            fontSize: '56px',
             color: '#ffffff',
             align: 'center',
             stroke: '#000000',
-            strokeThickness: 4
+            strokeThickness: 7
         }).setOrigin(0.5);
         gateCont.add(titleText);
 
-        // Task Short Description (enlarged with line spacing for Step 1 & Step 2 aligned to same start position)
+        // Task Short Description (enlarged with clean padding from titleText)
         const isTeam = task.gateType === 'team';
-        const descText = this.scene.add.text(0, 72, task.description, {
+        const descText = this.scene.add.text(0, 104, task.description, {
             fontFamily: 'Arial',
-            fontSize: '24px',
+            fontSize: '40px',
             lineSpacing: 10,
             color: '#cbd5e1',
             align: isTeam ? 'left' : 'center',
-            wordWrap: { width: cardW - 80 }
+            wordWrap: { width: cardW - 60 }
         }).setOrigin(0.5);
         gateCont.add(descText);
 
@@ -501,8 +532,8 @@ export class TeamUpRelayFeature {
         // Gate is approaching: keep runners running forward
         this.setRunnersState('running');
 
-        // Animate Gate approaching with 2.5D perspective scaling
-        const duration = Math.max(1600, task.decisionTimeSeconds * 1000 * 0.65);
+        // Animate Gate approaching with realistic 2.5D perspective scaling from the horizon
+        const duration = Math.max(1400, task.decisionTimeSeconds * 1000 * 0.55);
 
         this.gateApproachTween = this.scene.tweens.add({
             targets: gateCont,
@@ -514,21 +545,32 @@ export class TeamUpRelayFeature {
             onUpdate: (tween) => {
                 // Scroll track and parallel stadium audience grandstands based on approach speed
                 if (this.trackTiles[0]) {
-                    this.trackTiles[0].tilePositionY -= 2.2 + tween.progress * 2.0;
+                    this.trackTiles[0].tilePositionY -= 3.0 + tween.progress * 3.5;
                 }
                 if (this.leftAudienceLayer) {
-                    this.leftAudienceLayer.tilePositionY -= 1.4 + tween.progress * 1.2;
+                    this.leftAudienceLayer.tilePositionY -= 2.0 + tween.progress * 2.2;
                 }
                 if (this.rightAudienceLayer) {
-                    this.rightAudienceLayer.tilePositionY -= 1.4 + tween.progress * 1.2;
+                    this.rightAudienceLayer.tilePositionY -= 2.0 + tween.progress * 2.2;
                 }
             },
             onComplete: () => {
-                // Gate has spawned and is in position: track is paused and runners switch to slow sideways awaiting walk
+                // Gate has arrived and is in position: track is paused and runners switch to slow sideways awaiting walk
                 this.isTrackScrolling = false;
                 this.setRunnersState('awaiting');
                 this.canAcceptInput = true;
                 this.notifyHUD();
+
+                if (this.isDestroyed || !gateCont.active) return;
+                // Lively subtle floating/bouncing animation on gate
+                this.gateBobTween = this.scene.tweens.add({
+                    targets: gateCont,
+                    y: this.GATE_TARGET_Y - 10,
+                    duration: 750,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
             }
         });
 
@@ -585,6 +627,7 @@ export class TeamUpRelayFeature {
         if (this.chimpuBobTween) { this.chimpuBobTween.stop(); this.chimpuBobTween = null; }
         if (this.byteSidewaysTween) { this.byteSidewaysTween.stop(); this.byteSidewaysTween = null; }
         if (this.chimpuSidewaysTween) { this.chimpuSidewaysTween.stop(); this.chimpuSidewaysTween = null; }
+        if (this.gateBobTween) { this.gateBobTween.stop(); this.gateBobTween = null; }
 
         const container = leader === 'chimpu' ? this.chimpuContainer : this.byteContainer;
         const glow = leader === 'chimpu' ? this.chimpuGlow : this.byteGlow;
@@ -679,6 +722,10 @@ export class TeamUpRelayFeature {
         if (this.gateApproachTween) {
             this.gateApproachTween.stop();
             this.gateApproachTween = null;
+        }
+        if (this.gateBobTween) {
+            this.gateBobTween.stop();
+            this.gateBobTween = null;
         }
 
         // Points calculation
@@ -814,6 +861,10 @@ export class TeamUpRelayFeature {
 
     private shatterActiveGate() {
         if (!this.activeGateContainer) return;
+        if (this.gateBobTween) {
+            this.gateBobTween.stop();
+            this.gateBobTween = null;
+        }
         const gx = this.activeGateContainer.x;
         const gy = this.activeGateContainer.y;
 
@@ -958,10 +1009,10 @@ export class TeamUpRelayFeature {
         const { width } = this.scene.scale;
         const floatText = this.scene.add.text(width / 2, this.GATE_TARGET_Y - 40, text, {
             fontFamily: 'Arial Black',
-            fontSize: '34px',
+            fontSize: '44px',
             color: `#${color.toString(16).padStart(6, '0')}`,
             stroke: '#000000',
-            strokeThickness: 5
+            strokeThickness: 6
         }).setOrigin(0.5).setDepth(UILayers.GAME_EFFECTS + 10);
 
         this.scene.tweens.add({
@@ -1000,10 +1051,10 @@ export class TeamUpRelayFeature {
         // Victory Ribbon & Finish Banner
         const victoryRibbon = this.scene.add.text(width / 2, this.GATE_TARGET_Y + 18, '★ FINISH LINE - RELAY COMPLETE! ★', {
             fontFamily: 'Arial Black',
-            fontSize: '32px',
+            fontSize: '38px',
             color: '#ffffff',
             backgroundColor: '#d946ef',
-            padding: { x: 32, y: 14 }
+            padding: { x: 36, y: 16 }
         }).setOrigin(0.5).setScale(0.8).setDepth(UILayers.GAME_EFFECTS + 2);
 
         this.scene.tweens.add({
@@ -1223,11 +1274,13 @@ export class TeamUpRelayFeature {
     public pause() {
         this.isPaused = true;
         if (this.gateApproachTween) this.gateApproachTween.pause();
+        if (this.gateBobTween) this.gateBobTween.pause();
     }
 
     public resume() {
         this.isPaused = false;
         if (this.gateApproachTween) this.gateApproachTween.resume();
+        if (this.gateBobTween) this.gateBobTween.resume();
     }
 
     public destroy() {
@@ -1235,6 +1288,10 @@ export class TeamUpRelayFeature {
         if (this.gateApproachTween) {
             this.gateApproachTween.stop();
             this.gateApproachTween = null;
+        }
+        if (this.gateBobTween) {
+            this.gateBobTween.stop();
+            this.gateBobTween = null;
         }
         if (this.byteBobTween) {
             this.byteBobTween.stop();
@@ -1259,6 +1316,10 @@ export class TeamUpRelayFeature {
         if (this.activeGateContainer) {
             this.activeGateContainer.destroy();
             this.activeGateContainer = null;
+        }
+        if (this.introContainer) {
+            this.introContainer.destroy();
+            this.introContainer = null;
         }
         this.leftAudienceLayer?.destroy();
         this.leftAudienceLayer = null;

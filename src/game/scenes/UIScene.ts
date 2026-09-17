@@ -14,13 +14,14 @@ export class UIScene extends Scene {
 
     private gameScene!: Scene;
     private gameEvents!: Phaser.Events.EventEmitter;
+    private currentLevel: number = 1;
 
     // Top HUD UI Elements
     private levelTitleText!: GameObjects.Text;
-    private gateProgressText!: GameObjects.Text;
     private scoreText!: GameObjects.Text;
     private comboText!: GameObjects.Text;
     private teamSparkBar!: GameObjects.Graphics;
+    private teamSparkPercentText!: GameObjects.Text;
 
 
     // Bottom Action Buttons (Chimpu & Byte)
@@ -42,9 +43,10 @@ export class UIScene extends Scene {
         super({ key: 'UIScene' });
     }
 
-    init(data: { gameScene: Scene }) {
+    init(data: { gameScene: Scene; level?: number }) {
         this.gameScene = data.gameScene;
         this.gameEvents = this.gameScene.events;
+        this.currentLevel = data.level || 1;
     }
 
     create() {
@@ -67,64 +69,60 @@ export class UIScene extends Scene {
     private setupTopHUD() {
         const { width } = this.scale;
 
-        // Top Right: Level & Gate Progress Box (Positioned in Top-Right to prevent overlap with Top-Left toolbar)
-        const rightBoxX = width - 400;
-        const rightBox = this.add.graphics().setDepth(UILayers.UI_BACKGROUND_PANELS);
-        rightBox.fillStyle(0x0f172a, 0.9);
-        rightBox.fillRoundedRect(rightBoxX, 30, 360, 90, 16);
-        rightBox.lineStyle(3, 0x38bdf8, 0.9);
-        rightBox.strokeRoundedRect(rightBoxX, 30, 360, 90, 16);
-
-        this.levelTitleText = this.add.text(rightBoxX + 20, 45, 'Level 1: Pick the Leader', {
+        // Top Right: Level & Score
+        const headerStartX = width - 410;
+        this.levelTitleText = this.add.text(headerStartX, 50, `Level: ${this.currentLevel}`, {
             fontFamily: 'Arial Black',
-            fontSize: '20px',
-            color: '#ffffff'
-        }).setDepth(UILayers.UI_TEXT);
+            fontSize: '40px',
+            color: '#38bdf8',
+            stroke: '#000000',
+            strokeThickness: 6,
+        }).setOrigin(0, 0.5).setDepth(UILayers.UI_TEXT);
 
-        this.gateProgressText = this.add.text(rightBoxX + 20, 80, 'Gate: 1 / 10', {
+        this.scoreText = this.add.text(headerStartX, 105, 'SCORE: 0', {
             fontFamily: 'Arial Black',
-            fontSize: '22px',
-            color: '#facc15'
-        }).setDepth(UILayers.UI_TEXT);
+            fontSize: '40px',
+            color: '#4ade80',
+            stroke: '#000000',
+            strokeThickness: 6,
+        }).setOrigin(0, 0.5).setDepth(UILayers.UI_TEXT);
 
         // Top Center: Team Spark & Combo Meter Box
         const centerBox = this.add.graphics().setDepth(UILayers.UI_BACKGROUND_PANELS);
         centerBox.fillStyle(0x0f172a, 0.92);
-        centerBox.fillRoundedRect(width / 2 - 240, 24, 480, 96, 18);
+        centerBox.fillRoundedRect(width / 2 - 270, 24, 540, 106, 18);
         centerBox.lineStyle(3, 0xa855f7, 0.9);
-        centerBox.strokeRoundedRect(width / 2 - 240, 24, 480, 96, 18);
+        centerBox.strokeRoundedRect(width / 2 - 270, 24, 540, 106, 18);
 
-        this.add.text(width / 2 - 210, 38, '⚡ TEAM SPARK', {
+        this.add.text(width / 2 - 235, 36, '⚡ TEAM SPARK', {
             fontFamily: 'Arial Black',
-            fontSize: '18px',
+            fontSize: '26px',
             color: '#c084fc'
         }).setDepth(UILayers.UI_TEXT);
 
-        this.comboText = this.add.text(width / 2 + 210, 38, 'COMBO x1', {
+        this.comboText = this.add.text(width / 2 + 235, 36, 'COMBO x1', {
             fontFamily: 'Arial Black',
-            fontSize: '20px',
+            fontSize: '28px',
             color: '#38bdf8'
         }).setOrigin(1, 0).setDepth(UILayers.UI_TEXT);
 
         this.teamSparkBar = this.add.graphics().setDepth(UILayers.UI_TEXT);
-        this.drawSparkBar(0);
-
-        // Score in Top Center (increased size and generous top padding)
-        this.scoreText = this.add.text(width / 2, 158, 'SCORE: 0', {
+        this.teamSparkPercentText = this.add.text(width / 2, 93, '0%', {
             fontFamily: 'Arial Black',
-            fontSize: '34px',
-            color: '#4ade80',
+            fontSize: '24px',
+            color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 5
-        }).setOrigin(0.5).setDepth(UILayers.UI_TEXT);
+            strokeThickness: 4
+        }).setOrigin(0.5).setDepth(UILayers.UI_TEXT + 1);
+        this.drawSparkBar(0);
     }
 
     private drawSparkBar(percent: number) {
         const { width } = this.scale;
-        const bx = width / 2 - 210;
-        const by = 72;
-        const bw = 420;
-        const bh = 24;
+        const bx = width / 2 - 230;
+        const by = 78;
+        const bw = 460;
+        const bh = 30;
 
         this.teamSparkBar.clear();
         // Background track
@@ -134,7 +132,7 @@ export class UIScene extends Scene {
         this.teamSparkBar.strokeRoundedRect(bx, by, bw, bh, 8);
 
         // Filled gradient bar
-        const clamped = Math.min(100, Math.max(0, percent));
+        const clamped = Math.min(100, Math.max(0, Math.round(percent)));
         if (clamped > 0) {
             const fillW = Math.max(10, (bw - 4) * (clamped / 100));
             this.teamSparkBar.fillStyle(0xa855f7, 1);
@@ -143,6 +141,10 @@ export class UIScene extends Scene {
             // Top highlight line
             this.teamSparkBar.fillStyle(0xf0abfc, 0.8);
             this.teamSparkBar.fillRect(bx + 4, by + 4, fillW - 8, 4);
+        }
+
+        if (this.teamSparkPercentText) {
+            this.teamSparkPercentText.setText(`${clamped}%`);
         }
     }
 
@@ -182,10 +184,10 @@ export class UIScene extends Scene {
         // Titles & Subtitles (centered horizontally & vertically with enlarged font)
         const chTitle = this.add.text(0, 0, 'CHIMPU', {
             fontFamily: 'Arial Black',
-            fontSize: '34px',
+            fontSize: '40px',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 5
+            strokeThickness: 6
         }).setOrigin(0.5);
 
         this.chimpuBtnContainer.add(chTitle);
@@ -242,10 +244,10 @@ export class UIScene extends Scene {
         // Titles & Subtitles (centered horizontally & vertically with enlarged font)
         const byTitle = this.add.text(0, 0, 'BYTE', {
             fontFamily: 'Arial Black',
-            fontSize: '34px',
+            fontSize: '40px',
             color: '#ffffff',
             stroke: '#000000',
-            strokeThickness: 5
+            strokeThickness: 6
         }).setOrigin(0.5);
 
         this.byteBtnContainer.add(byTitle);
@@ -279,15 +281,17 @@ export class UIScene extends Scene {
             .setVisible(false);
 
         const infoBg = this.add.graphics();
-        infoBg.fillStyle(0x0f172a, 0.92);
-        infoBg.fillRoundedRect(-280, -32, 560, 64, 18);
-        infoBg.lineStyle(2.5, 0xa855f7, 0.85);
-        infoBg.strokeRoundedRect(-280, -32, 560, 64, 18);
+        infoBg.fillStyle(0x0f172a, 0.94);
+        infoBg.fillRoundedRect(-410, -42, 820, 84, 22);
+        infoBg.lineStyle(2.5, 0xa855f7, 0.9);
+        infoBg.strokeRoundedRect(-410, -42, 820, 84, 22);
 
         const infoText = this.add.text(0, 0, 'Tap Chimpu and Byte in the correct sequence', {
             fontFamily: 'Arial Black',
-            fontSize: '24px',
+            fontSize: '36px',
             color: '#f0abfc',
+            stroke: '#000000',
+            strokeThickness: 5,
             align: 'center'
         }).setOrigin(0.5);
 
@@ -306,34 +310,34 @@ export class UIScene extends Scene {
         const pointerBg = this.add.graphics();
         // Golden outer glow
         pointerBg.fillStyle(0xf59e0b, 0.45);
-        pointerBg.fillRoundedRect(-82, -42, 164, 60, 20);
+        pointerBg.fillRoundedRect(-96, -46, 192, 66, 22);
 
         // Solid vibrant gold badge
         pointerBg.fillStyle(0xfbbf24, 1);
-        pointerBg.fillRoundedRect(-76, -37, 152, 50, 16);
+        pointerBg.fillRoundedRect(-90, -41, 180, 56, 18);
         pointerBg.lineStyle(4, 0xffffff, 1);
-        pointerBg.strokeRoundedRect(-76, -37, 152, 50, 16);
+        pointerBg.strokeRoundedRect(-90, -41, 180, 56, 18);
 
         // Downward pointer arrow triangle
         pointerBg.fillStyle(0xfbbf24, 1);
         pointerBg.beginPath();
-        pointerBg.moveTo(-16, 13);
-        pointerBg.lineTo(16, 13);
-        pointerBg.lineTo(0, 30);
+        pointerBg.moveTo(-18, 15);
+        pointerBg.lineTo(18, 15);
+        pointerBg.lineTo(0, 34);
         pointerBg.closePath();
         pointerBg.fillPath();
 
         // Downward arrow border
         pointerBg.lineStyle(4, 0xffffff, 1);
         pointerBg.beginPath();
-        pointerBg.moveTo(-16, 13);
-        pointerBg.lineTo(0, 30);
-        pointerBg.lineTo(16, 13);
+        pointerBg.moveTo(-18, 15);
+        pointerBg.lineTo(0, 34);
+        pointerBg.lineTo(18, 15);
         pointerBg.strokePath();
 
-        const pointerText = this.add.text(0, -12, '👇 TAP HERE!', {
+        const pointerText = this.add.text(0, -13, '👇 TAP HERE!', {
             fontFamily: 'Arial Black',
-            fontSize: '19px',
+            fontSize: '24px',
             color: '#0f172a'
         }).setOrigin(0.5);
 
@@ -362,10 +366,9 @@ export class UIScene extends Scene {
     }
 
     private onUpdateRelayHUD(state: RelayHUDState) {
-        this.levelTitleText.setText(state.levelTitle);
-        this.gateProgressText.setText(`Gate: ${state.gateIndex} / ${state.totalGates}`);
+        this.levelTitleText.setText(`Level: ${state.levelNumber || this.currentLevel}`);
         this.scoreText.setText(`SCORE: ${state.score}`);
-        
+
         if (state.combo >= 2) {
             this.comboText.setText(`COMBO x${state.combo} 🔥`);
             this.comboText.setColor('#facc15');

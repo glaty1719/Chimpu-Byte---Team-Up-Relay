@@ -176,11 +176,31 @@ export class ArenaVisuals {
             stLeft.lineBetween(10, y, 60, y + 60);
             stLeft.lineBetween(60, y, 10, y + 60);
         }
-        // Floodlight lenses
+        // Floodlight lenses & parallel light beams
         for (let y = 40; y < sh; y += 180) {
-            stLeft.fillStyle(0x00f2fe, 0.8);
+            // Parallel volumetric beam shining inward across grandstand toward track
+            stLeft.fillStyle(0x00f2fe, 0.08);
+            stLeft.beginPath();
+            stLeft.moveTo(35, y);
+            stLeft.lineTo(sw, y + 25);
+            stLeft.lineTo(sw, y + 105);
+            stLeft.closePath();
+            stLeft.fillPath();
+
+            stLeft.fillStyle(0xffffff, 0.035);
+            stLeft.beginPath();
+            stLeft.moveTo(35, y);
+            stLeft.lineTo(sw, y + 45);
+            stLeft.lineTo(sw, y + 85);
+            stLeft.closePath();
+            stLeft.fillPath();
+
+            // Glowing Floodlight Lens
+            stLeft.fillStyle(0x00f2fe, 0.35);
+            stLeft.fillCircle(35, y, 18);
+            stLeft.fillStyle(0x00f2fe, 0.9);
             stLeft.fillCircle(35, y, 10);
-            stLeft.fillStyle(0xffffff, 0.95);
+            stLeft.fillStyle(0xffffff, 1.0);
             stLeft.fillCircle(35, y, 5);
         }
 
@@ -267,11 +287,31 @@ export class ArenaVisuals {
             stRight.lineBetween(sw - 10, y, sw - 60, y + 60);
             stRight.lineBetween(sw - 60, y, sw - 10, y + 60);
         }
-        // Floodlight lenses
+        // Floodlight lenses & parallel light beams
         for (let y = 40; y < sh; y += 180) {
-            stRight.fillStyle(0xff477e, 0.8);
+            // Parallel volumetric beam shining inward across grandstand toward track
+            stRight.fillStyle(0xff477e, 0.08);
+            stRight.beginPath();
+            stRight.moveTo(sw - 35, y);
+            stRight.lineTo(0, y + 25);
+            stRight.lineTo(0, y + 105);
+            stRight.closePath();
+            stRight.fillPath();
+
+            stRight.fillStyle(0xffffff, 0.035);
+            stRight.beginPath();
+            stRight.moveTo(sw - 35, y);
+            stRight.lineTo(0, y + 45);
+            stRight.lineTo(0, y + 85);
+            stRight.closePath();
+            stRight.fillPath();
+
+            // Glowing Floodlight Lens
+            stRight.fillStyle(0xff477e, 0.35);
+            stRight.fillCircle(sw - 35, y, 18);
+            stRight.fillStyle(0xff477e, 0.9);
             stRight.fillCircle(sw - 35, y, 10);
-            stRight.fillStyle(0xffffff, 0.95);
+            stRight.fillStyle(0xffffff, 1.0);
             stRight.fillCircle(sw - 35, y, 5);
         }
 
@@ -346,52 +386,7 @@ export class ArenaVisuals {
         hRight.fillCircle(35, 20, 4);
         hRight.generateTexture('holo_screen_right', 220, 130);
 
-        // 6. Confetti Cannon Launchers (Mounted on left/right track barriers)
-        const cCanLeft = scene.make.graphics({ x: 0, y: 0 });
-        cCanLeft.fillStyle(0x1e293b, 1);
-        cCanLeft.fillRoundedRect(10, 40, 60, 50, 8);
-        cCanLeft.fillStyle(0x0f172a, 1);
-        cCanLeft.fillRoundedRect(18, 50, 44, 30, 4);
-        // Angled Twin Cannon Barrels (aiming toward track center-up)
-        cCanLeft.fillStyle(0x334155, 1);
-        cCanLeft.lineStyle(2, 0x00f2fe, 1);
-        cCanLeft.beginPath();
-        cCanLeft.moveTo(35, 45);
-        cCanLeft.lineTo(65, 10);
-        cCanLeft.lineTo(75, 18);
-        cCanLeft.lineTo(45, 55);
-        cCanLeft.closePath();
-        cCanLeft.fillPath();
-        cCanLeft.strokePath();
-        // Glowing Cannon Nozzles
-        cCanLeft.fillStyle(0x00f2fe, 1);
-        cCanLeft.fillEllipse(70, 14, 10, 6);
-        cCanLeft.fillStyle(0xffffff, 1);
-        cCanLeft.fillEllipse(70, 14, 5, 3);
-        cCanLeft.generateTexture('confetti_cannon_left', 90, 100);
 
-        const cCanRight = scene.make.graphics({ x: 0, y: 0 });
-        cCanRight.fillStyle(0x1e293b, 1);
-        cCanRight.fillRoundedRect(20, 40, 60, 50, 8);
-        cCanRight.fillStyle(0x0f172a, 1);
-        cCanRight.fillRoundedRect(28, 50, 44, 30, 4);
-        // Angled Twin Cannon Barrels (aiming toward track center-up)
-        cCanRight.fillStyle(0x334155, 1);
-        cCanRight.lineStyle(2, 0xff477e, 1);
-        cCanRight.beginPath();
-        cCanRight.moveTo(55, 45);
-        cCanRight.lineTo(25, 10);
-        cCanRight.lineTo(15, 18);
-        cCanRight.lineTo(45, 55);
-        cCanRight.closePath();
-        cCanRight.fillPath();
-        cCanRight.strokePath();
-        // Glowing Cannon Nozzles
-        cCanRight.fillStyle(0xff477e, 1);
-        cCanRight.fillEllipse(20, 14, 10, 6);
-        cCanRight.fillStyle(0xffffff, 1);
-        cCanRight.fillEllipse(20, 14, 5, 3);
-        cCanRight.generateTexture('confetti_cannon_right', 90, 100);
 
         // 7. Finish-Line Grand Portal Arch (640x360)
         const finArch = scene.make.graphics({ x: 0, y: 0 });

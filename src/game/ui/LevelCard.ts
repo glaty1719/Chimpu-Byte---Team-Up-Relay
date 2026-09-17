@@ -21,13 +21,13 @@ export class LevelCard {
 
         // Level Number Text (always visible)
         const label = level === 0 ? 'Tutorial' : `${level}`;
-        const fontSize = level === 0 ? '36px' : '110px';
+        const fontSize = level === 0 ? '46px' : '124px';
         const levelText = scene.add.text(0, 0, label, {
             fontFamily: 'Arial Black',
             fontSize: fontSize,
             color: '#caff00',
             stroke: '#732C15',
-            strokeThickness: 8
+            strokeThickness: 9
         }).setOrigin(0.5);
 
         if (!isUnlocked) {

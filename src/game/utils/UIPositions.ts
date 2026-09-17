@@ -7,7 +7,7 @@
 export class UIPositions {
     // ===== TOOLBAR CONFIGURATION =====
     static readonly TOP_LEFT_START_X = 100;
-    static readonly TOP_LEFT_START_Y = 100;
+    static readonly TOP_LEFT_START_Y = 80;
     static readonly BUTTON_SPACING_X = 120; // 100 -> 220 -> 340 ...
 
     /**
