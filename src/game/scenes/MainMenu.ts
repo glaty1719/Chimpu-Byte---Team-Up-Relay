@@ -26,22 +26,66 @@ export class MainMenu extends Scene {
             .setDisplaySize(width, height)
             .setDepth(UILayers.GAME_BACKGROUND);
 
+        const playBtnX = width - 260;
+        const playBtnY = height - 210;
+
         let isStarting = false;
+        const startGame = () => {
+            if (isStarting) return;
+            isStarting = true;
+            AudioManager.getInstance().playSFX('click', 0.7);
+            this.scene.start('LevelSelection');
+        };
+
         const playBtn = new SpriteButton(
             this,
-            width / 2,
-            height / 2 + 100,
+            playBtnX,
+            playBtnY,
             'playButton',
-            () => {
-                if (isStarting) return;
-                isStarting = true;
-                this.scene.start('LevelSelection');
-            }
-        ).setDepth(UILayers.UI_BUTTONS).setScale(1);
+            startGame
+        ).setDepth(UILayers.UI_BUTTONS).setScale(0.38);
 
-        // Pulse animation
+        // 'Play Now' text styled to blend with the orange & gold button theme
+        const playText = this.add.text(playBtnX, playBtnY + 105, 'Play Now', {
+            fontFamily: 'Arial Black, Impact, sans-serif',
+            fontSize: '34px',
+            color: '#FFB800',
+            stroke: '#1A0B02',
+            strokeThickness: 6,
+            shadow: {
+                offsetX: 0,
+                offsetY: 4,
+                color: '#FF8800',
+                blur: 8,
+                stroke: true,
+                fill: true
+            }
+        }).setOrigin(0.5).setDepth(UILayers.UI_ICONS);
+
+        playText.setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.tweens.add({
+                    targets: [playBtn.sprite, playText],
+                    scaleX: '*=0.92',
+                    scaleY: '*=0.92',
+                    duration: 80,
+                    yoyo: true,
+                    onComplete: () => startGame()
+                });
+            });
+
+        // Synchronized pulse animation for both button and text
         this.tweens.add({
             targets: playBtn.sprite,
+            scale: 0.42,
+            duration: 1000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        this.tweens.add({
+            targets: playText,
             scale: 1.1,
             duration: 1000,
             yoyo: true,
