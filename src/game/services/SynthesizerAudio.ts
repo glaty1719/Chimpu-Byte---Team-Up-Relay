@@ -13,6 +13,8 @@ export class SynthesizerAudio {
     private bgmGain: GainNode | null = null;
 
     private isMuted: boolean = false;
+    private isMusicMuted: boolean = false;
+    private isSFXMuted: boolean = false;
     private bgmVolume: number = 0.35;
     private sfxVolume: number = 0.6;
 
@@ -38,11 +40,11 @@ export class SynthesizerAudio {
                 this.masterGain.connect(this.ctx.destination);
 
                 this.bgmGain = this.ctx.createGain();
-                this.bgmGain.gain.setValueAtTime(this.bgmVolume, this.ctx.currentTime);
+                this.bgmGain.gain.setValueAtTime(this.isMusicMuted ? 0 : this.bgmVolume, this.ctx.currentTime);
                 this.bgmGain.connect(this.masterGain);
 
                 this.sfxGain = this.ctx.createGain();
-                this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
+                this.sfxGain.gain.setValueAtTime(this.isSFXMuted ? 0 : this.sfxVolume, this.ctx.currentTime);
                 this.sfxGain.connect(this.masterGain);
             }
         } catch (e) {
@@ -64,16 +66,30 @@ export class SynthesizerAudio {
         }
     }
 
+    public setMusicMuted(muted: boolean) {
+        this.isMusicMuted = muted;
+        if (this.bgmGain && this.ctx) {
+            this.bgmGain.gain.setValueAtTime(muted ? 0 : this.bgmVolume, this.ctx.currentTime);
+        }
+    }
+
+    public setSFXMuted(muted: boolean) {
+        this.isSFXMuted = muted;
+        if (this.sfxGain && this.ctx) {
+            this.sfxGain.gain.setValueAtTime(muted ? 0 : this.sfxVolume, this.ctx.currentTime);
+        }
+    }
+
     public setBgmVolume(vol: number) {
         this.bgmVolume = Math.max(0, Math.min(1, vol));
-        if (this.bgmGain && this.ctx) {
+        if (this.bgmGain && this.ctx && !this.isMusicMuted) {
             this.bgmGain.gain.setValueAtTime(this.bgmVolume, this.ctx.currentTime);
         }
     }
 
     public setSfxVolume(vol: number) {
         this.sfxVolume = Math.max(0, Math.min(1, vol));
-        if (this.sfxGain && this.ctx) {
+        if (this.sfxGain && this.ctx && !this.isSFXMuted) {
             this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
         }
     }
@@ -82,7 +98,7 @@ export class SynthesizerAudio {
 
     public playButtonTap() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
@@ -104,7 +120,7 @@ export class SynthesizerAudio {
 
     public playDash() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
@@ -133,7 +149,7 @@ export class SynthesizerAudio {
 
     public playGateBreak() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
 
@@ -187,7 +203,7 @@ export class SynthesizerAudio {
 
     public playGentleBounce() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
 
@@ -228,7 +244,7 @@ export class SynthesizerAudio {
 
     public playCombo(comboCount: number = 1) {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         const baseFreq = 440 * Math.pow(1.05946, Math.min(comboCount * 2, 16));
@@ -252,7 +268,7 @@ export class SynthesizerAudio {
 
     public playTeamSpark() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         // Two harmonious sweeping oscillators (Chimpu Coral tone + Byte Cyan tone)
@@ -279,7 +295,7 @@ export class SynthesizerAudio {
 
     public playCrowdCheer() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         // Bandpass noise simulation
         const now = this.ctx.currentTime;
@@ -313,7 +329,7 @@ export class SynthesizerAudio {
 
     public playBadgeEarned() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         // Fanfare notes: C5, E5, G5, C6
@@ -342,7 +358,7 @@ export class SynthesizerAudio {
 
     public playFireworks() {
         this.resumeContext();
-        if (!this.ctx || !this.sfxGain || this.isMuted) return;
+        if (!this.ctx || !this.sfxGain || this.isMuted || this.isSFXMuted || this.sfxVolume <= 0) return;
 
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
@@ -384,7 +400,11 @@ export class SynthesizerAudio {
         ];
 
         this.bgmTimer = window.setInterval(() => {
-            if (!this.isBgmPlaying || !this.ctx || !this.bgmGain || this.isMuted) return;
+            if (!this.isBgmPlaying || !this.ctx || !this.bgmGain) return;
+            if (this.isMuted || this.isMusicMuted || this.bgmVolume <= 0) {
+                this.currentBgmStep++;
+                return;
+            }
 
             const now = this.ctx.currentTime;
             const step = this.currentBgmStep % 16;

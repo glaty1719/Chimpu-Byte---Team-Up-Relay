@@ -1,7 +1,15 @@
 import { Scene } from 'phaser';
+import { SynthesizerAudio } from './SynthesizerAudio';
 
 export class AudioManager {
     private static instance: AudioManager;
+
+    private scene?: Scene;
+    private currentMusic: Phaser.Sound.BaseSound | null = null;
+    private musicVolume: number = 0.5;
+    private sfxVolume: number = 0.5;
+    private _isMusicMuted: boolean = false;
+    private _isSFXMuted: boolean = false;
 
     private constructor() {
         // Load settings from localStorage
@@ -30,6 +38,12 @@ export class AudioManager {
         } catch (e) {
             // localStorage not available or error reading
         }
+
+        const synth = SynthesizerAudio.getInstance();
+        synth.setBgmVolume(this.musicVolume);
+        synth.setMusicMuted(this._isMusicMuted);
+        synth.setSfxVolume(this.sfxVolume);
+        synth.setSFXMuted(this._isSFXMuted);
     }
 
     private saveSettings() {
@@ -50,28 +64,30 @@ export class AudioManager {
         return AudioManager.instance;
     }
 
-    private scene: Scene;
-    private currentMusic: Phaser.Sound.BaseSound | null = null;
-    private musicVolume: number = 0.5;
-    private sfxVolume: number = 0.5;
-    private _isMusicMuted: boolean = false;
-    private _isSFXMuted: boolean = false;
-
     public init(scene: Scene) {
         this.scene = scene;
+        const synth = SynthesizerAudio.getInstance();
+        synth.init();
+        synth.setBgmVolume(this.musicVolume);
+        synth.setMusicMuted(this._isMusicMuted);
+        synth.setSfxVolume(this.sfxVolume);
+        synth.setSFXMuted(this._isSFXMuted);
     }
 
     public setMusicVolume(volume: number) {
         this.musicVolume = Phaser.Math.Clamp(volume, 0, 1);
         if (this.currentMusic && !this._isMusicMuted) {
-            (this.currentMusic as Phaser.Sound.WebAudioSound).setVolume(this.musicVolume);
-            // safe cast, or use any
+            (this.currentMusic as any).setVolume(this.musicVolume);
         }
+        const synth = SynthesizerAudio.getInstance();
+        synth.setBgmVolume(this.musicVolume);
         this.saveSettings();
     }
 
     public setSFXVolume(volume: number) {
         this.sfxVolume = Phaser.Math.Clamp(volume, 0, 1);
+        const synth = SynthesizerAudio.getInstance();
+        synth.setSfxVolume(this.sfxVolume);
         this.saveSettings();
     }
 
@@ -84,11 +100,15 @@ export class AudioManager {
                 (this.currentMusic as any).setVolume(this.musicVolume);
             }
         }
+        const synth = SynthesizerAudio.getInstance();
+        synth.setMusicMuted(muted);
         this.saveSettings();
     }
 
     public setSFXMuted(muted: boolean) {
         this._isSFXMuted = muted;
+        const synth = SynthesizerAudio.getInstance();
+        synth.setSFXMuted(muted);
         this.saveSettings();
     }
 
@@ -107,12 +127,10 @@ export class AudioManager {
             this.currentMusic.play();
         } else {
             // Procedural Synthesizer BGM fallback
-            import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
-                const synth = SynthesizerAudio.getInstance();
-                synth.setMuted(this._isMusicMuted);
-                synth.setBgmVolume(this.musicVolume);
-                synth.startSportsBGM();
-            });
+            const synth = SynthesizerAudio.getInstance();
+            synth.setMusicMuted(this._isMusicMuted);
+            synth.setBgmVolume(this.musicVolume);
+            synth.startSportsBGM();
         }
     }
 
@@ -121,9 +139,7 @@ export class AudioManager {
             this.currentMusic.stop();
             this.currentMusic = null;
         }
-        import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
-            SynthesizerAudio.getInstance().stopSportsBGM();
-        });
+        SynthesizerAudio.getInstance().stopSportsBGM();
     }
 
     public playSFX(key: string, volScale: number = 1.0) {
@@ -135,20 +151,18 @@ export class AudioManager {
             });
         } else {
             // Procedural Synthesizer SFX fallback
-            import('./SynthesizerAudio').then(({ SynthesizerAudio }) => {
-                const synth = SynthesizerAudio.getInstance();
-                synth.setSfxVolume(this.sfxVolume * volScale);
-                if (key === 'click' || key === 'button_tap') synth.playButtonTap();
-                else if (key === 'dash') synth.playDash();
-                else if (key === 'gate_break' || key === 'shatter') synth.playGateBreak();
-                else if (key === 'bounce' || key === 'bumper') synth.playGentleBounce();
-                else if (key === 'combo') synth.playCombo(Math.round(volScale * 5));
-                else if (key === 'team_spark') synth.playTeamSpark();
-                else if (key === 'cheer' || key === 'crowd') synth.playCrowdCheer();
-                else if (key === 'badge') synth.playBadgeEarned();
-                else if (key === 'fireworks') synth.playFireworks();
-                else synth.playButtonTap();
-            });
+            const synth = SynthesizerAudio.getInstance();
+            synth.setSfxVolume(this.sfxVolume * volScale);
+            if (key === 'click' || key === 'button_tap') synth.playButtonTap();
+            else if (key === 'dash') synth.playDash();
+            else if (key === 'gate_break' || key === 'shatter') synth.playGateBreak();
+            else if (key === 'bounce' || key === 'bumper') synth.playGentleBounce();
+            else if (key === 'combo') synth.playCombo(Math.round(volScale * 5));
+            else if (key === 'team_spark') synth.playTeamSpark();
+            else if (key === 'cheer' || key === 'crowd') synth.playCrowdCheer();
+            else if (key === 'badge') synth.playBadgeEarned();
+            else if (key === 'fireworks') synth.playFireworks();
+            else synth.playButtonTap();
         }
     }
 
